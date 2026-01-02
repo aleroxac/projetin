@@ -1,24 +1,34 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 
-const apiKey = process.env.API_KEY || ''; 
+// Use process.env.API_KEY directly for initialization as per guidelines
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-const ai = new GoogleGenAI({ apiKey });
-
-export const analyzeMealWithAI = async (description: string) => {
-  if (!apiKey) return null;
-
+export const analyzeMealWithAI = async (description: string, goal: string, remainingKcal: number) => {
   try {
+    // Using gemini-3-flash-preview for general text tasks
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-flash-preview",
       contents: `Analyze the following meal description: "${description}". 
-      Break it down into individual food items with their estimated macros.
-      Provide a total sum of macros.
-      Provide a short health insight.`,
+      User context: Goal is ${goal}, remaining calories for today is ${remainingKcal}kcal.
+      
+      Tasks:
+      1. Break down into individual food items with estimated macros.
+      2. Sum total macros.
+      3. Classify the meal Tier (S, A, B, C, or D) based on the user's goal and nutrient density. 
+         - S: Perfect for goal, nutrient dense.
+         - A: Very good.
+         - B: Average.
+         - C: Poor macro ratio or high processing.
+         - D: Significant setback for goal.
+      4. Suggest 1 or 2 'Smart Swaps' (healthier/less caloric alternatives for items in the meal).
+      5. Provide a short health insight.`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
+            name: { type: Type.STRING },
             items: {
                 type: Type.ARRAY,
                 items: {
@@ -42,10 +52,14 @@ export const analyzeMealWithAI = async (description: string) => {
                     fat: { type: Type.NUMBER },
                 }
             },
-            insight: { type: Type.STRING },
-            suggestion: { type: Type.STRING }
+            tier: { type: Type.STRING, enum: ["S", "A", "B", "C", "D"] },
+            swaps: { 
+                type: Type.ARRAY, 
+                items: { type: Type.STRING } 
+            },
+            insight: { type: Type.STRING }
           },
-          required: ["items", "total", "insight"]
+          required: ["items", "total", "tier", "insight"]
         }
       }
     });
@@ -53,22 +67,15 @@ export const analyzeMealWithAI = async (description: string) => {
     return JSON.parse(response.text);
   } catch (error) {
     console.error("Gemini Meal Error:", error);
-    // Fallback mock
-    return {
-      items: [{ name: "Generic Item", quantity: "1 serving", calories: 450, protein: 30, carbs: 50, fat: 15 }],
-      total: { calories: 450, protein: 30, carbs: 50, fat: 15 },
-      insight: "Could not connect to AI. Using estimate.",
-      suggestion: "Check API Key."
-    };
+    return null;
   }
 };
 
 export const parseWorkoutWithAI = async (input: string) => {
-  if (!apiKey) return null;
-
   try {
+    // Using gemini-3-flash-preview for general text tasks
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-flash-preview",
       contents: `Parse this workout text into a structured JSON format. 
       Input: "${input}". 
       Infer the muscle group for each exercise. 

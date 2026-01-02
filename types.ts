@@ -23,20 +23,20 @@ export enum UserRole {
     email: string;
     bio?: string;
     avatarUrl?: string;
-    delegatedUsers: string[]; // IDs of users who can access this account
+    delegatedUsers: string[]; 
   }
   
   export interface Profile {
     id: string;
     userId: string;
-    name: string; // e.g., "Season 2024 - Bodybuilding"
+    name: string; 
     roles: UserRole[];
     sports: Sport[];
     birthDate: string;
     gender: 'M' | 'F';
     heightCm: number;
     weightKg: number;
-    activityLevel: number; // 1.2 to 2.5 multiplier
+    activityLevel: number; 
     bodyStats: {
       chest?: number;
       arms?: number;
@@ -56,13 +56,13 @@ export enum UserRole {
     startDate: string;
     endDate: string;
     stats: {
-      tmb: number; // Basal Metabolic Rate
-      tdee: number; // Total Daily Energy Expenditure
+      tmb: number; 
+      tdee: number; 
       targetCalories: number;
       targetProtein: number;
       targetCarbs: number;
       targetFat: number;
-      weeklyWeightGoal: number; // kg
+      weeklyWeightGoal: number; 
     };
     freeMealsPerWeek: number;
     supplements: Supplement[];
@@ -93,16 +93,39 @@ export enum UserRole {
     carbs: number;
     fat: number;
   }
+
+  export interface FoodDefinition {
+    name: string;
+    caloriesPerGram: number;
+    proteinPerGram: number;
+    carbsPerGram: number;
+    fatPerGram: number;
+    lastQuantityStr: string;
+  }
+
+  export interface MealCacheEntry {
+    name: string;
+    items: FoodItem[];
+    macros: {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+    };
+    insight: string;
+    tier?: 'S' | 'A' | 'B' | 'C' | 'D';
+    swaps?: string[];
+  }
   
   export interface Meal {
     id: string;
     protocolId: string;
     timestamp: string;
-    description: string; // The raw input
-    name: string; // "Lunch", "Dinner" etc
+    description: string; 
+    name: string; 
     mood: 'HAPPY' | 'NEUTRAL' | 'SAD' | 'STRESSED' | 'HUNGRY';
-    shapePerception: number; // 1-10
-    items: FoodItem[]; // Individual items
+    shapePerception: number; 
+    items: FoodItem[]; 
     macros: {
       calories: number;
       protein: number;
@@ -110,13 +133,15 @@ export enum UserRole {
       fat: number;
     };
     aiInsight?: string;
+    tier?: 'S' | 'A' | 'B' | 'C' | 'D';
+    swaps?: string[];
     imageUrl?: string;
   }
   
   export interface ExerciseSet {
     reps: number;
     weight: number;
-    rpe: number; // Rate of Perceived Exertion (1-10)
+    rpe: number; 
     type: 'WARMUP' | 'FEEDER' | 'WORKING';
   }
   
@@ -132,16 +157,16 @@ export enum UserRole {
   export interface WorkoutPlan {
     id: string;
     protocolId: string;
-    name: string; // e.g. "Leg Day A"
+    name: string; 
     description?: string;
     targetMuscleGroups: string[];
-    exercises: Exercise[]; // Template exercises
+    exercises: Exercise[]; 
   }
   
   export interface Workout {
     id: string;
     protocolId: string;
-    planId?: string; // Linked to a plan
+    planId?: string; 
     timestamp: string;
     name: string;
     exercises: Exercise[];
