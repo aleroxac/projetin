@@ -67,14 +67,23 @@ function App() {
   const [profiles, setProfiles] = useState<Profile[]>([MOCK_PROFILE]);
   const [activeProfileId, setActiveProfileId] = useState<string>(MOCK_PROFILE.id);
   const [protocols, setProtocols] = useState<Protocol[]>([MOCK_PROTOCOL]);
-  const [meals, setMeals] = useState<Meal[]>([]);
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
   
-  // Cache Systems with Persistent Loading
+  // Persistent States
+  const [meals, setMeals] = useState<Meal[]>(() => {
+    const saved = localStorage.getItem('projetin_meals');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  const [workouts, setWorkouts] = useState<Workout[]>(() => {
+    const saved = localStorage.getItem('projetin_workouts');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
   const [foodLibrary, setFoodLibrary] = useState<Record<string, FoodDefinition>>(() => {
     const saved = localStorage.getItem('projetin_food_library');
     return saved ? JSON.parse(saved) : {};
   });
+  
   const [mealCache, setMealCache] = useState<Record<string, MealCacheEntry>>(() => {
     const saved = localStorage.getItem('projetin_meal_cache');
     return saved ? JSON.parse(saved) : {};
@@ -82,14 +91,11 @@ function App() {
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Persistence Effects
-  useEffect(() => {
-    localStorage.setItem('projetin_food_library', JSON.stringify(foodLibrary));
-  }, [foodLibrary]);
-
-  useEffect(() => {
-    localStorage.setItem('projetin_meal_cache', JSON.stringify(mealCache));
-  }, [mealCache]);
+  // Persistence Syncing
+  useEffect(() => { localStorage.setItem('projetin_meals', JSON.stringify(meals)); }, [meals]);
+  useEffect(() => { localStorage.setItem('projetin_workouts', JSON.stringify(workouts)); }, [workouts]);
+  useEffect(() => { localStorage.setItem('projetin_food_library', JSON.stringify(foodLibrary)); }, [foodLibrary]);
+  useEffect(() => { localStorage.setItem('projetin_meal_cache', JSON.stringify(mealCache)); }, [mealCache]);
 
   const activeProfile = profiles.find(p => p.id === activeProfileId) || profiles[0];
   const activeProtocol = protocols.find(p => p.profileId === activeProfileId) || protocols[0];
@@ -97,7 +103,7 @@ function App() {
   const handleUpdateUser = (updatedUser: User) => setUser(updatedUser);
 
   const handleAddProfile = (newProfile: Profile) => {
-    setProfiles([...profiles, newProfile]);
+    setProfiles(prev => [...prev, newProfile]);
     setActiveProfileId(newProfile.id);
     const defaultProtocol: Protocol = {
         ...MOCK_PROTOCOL,
@@ -105,50 +111,54 @@ function App() {
         profileId: newProfile.id,
         name: `Protocolo para ${newProfile.name}`
     };
-    setProtocols([...protocols, defaultProtocol]);
+    setProtocols(prev => [...prev, defaultProtocol]);
   };
 
   const handleUpdateProfile = (updatedProfile: Profile) => {
-      setProfiles(profiles.map(p => p.id === updatedProfile.id ? updatedProfile : p));
+      setProfiles(prev => prev.map(p => p.id === updatedProfile.id ? updatedProfile : p));
   };
 
   const handleDeleteProfile = (id: string) => {
-      const newProfiles = profiles.filter(p => p.id !== id);
-      setProfiles(newProfiles);
-      if (activeProfileId === id && newProfiles.length > 0) {
-          setActiveProfileId(newProfiles[0].id);
-      }
+      setProfiles(prev => {
+          const filtered = prev.filter(p => p.id !== id);
+          if (activeProfileId === id && filtered.length > 0) {
+              setActiveProfileId(filtered[0].id);
+          }
+          return filtered;
+      });
   };
 
-  const handleAddMeal = (meal: Meal) => setMeals([meal, ...meals]);
-  const handleUpdateMeal = (updatedMeal: Meal) => setMeals(meals.map(m => m.id === updatedMeal.id ? updatedMeal : m));
-  const handleDeleteMeal = (id: string) => setMeals(meals.filter(m => m.id !== id));
+  // Diet Handlers
+  const handleAddMeal = (meal: Meal) => setMeals(prev => [meal, ...prev]);
+  const handleUpdateMeal = (updatedMeal: Meal) => setMeals(prev => prev.map(m => m.id === updatedMeal.id ? updatedMeal : m));
+  const handleDeleteMeal = (id: string) => setMeals(prev => prev.filter(m => m.id !== id));
 
+  // Memory/Cache Handlers
   const handleUpdateLibrary = (name: string, definition: FoodDefinition) => {
     setFoodLibrary(prev => ({ ...prev, [name]: definition }));
   };
-
   const handleRemoveLibraryItem = (name: string) => {
-      setFoodLibrary(prev => {
-          const newState = { ...prev };
-          delete newState[name];
-          return newState;
-      });
+    setFoodLibrary(prev => {
+        const newState = { ...prev };
+        delete newState[name];
+        return newState;
+    });
   };
-
   const handleUpdateMealCache = (description: string, entry: MealCacheEntry) => {
     setMealCache(prev => ({ ...prev, [description.trim().toLowerCase()]: entry }));
   };
-
   const handleRemoveCacheItem = (description: string) => {
-      setMealCache(prev => {
-          const newState = { ...prev };
-          delete newState[description.toLowerCase()];
-          return newState;
-      });
+    setMealCache(prev => {
+        const newState = { ...prev };
+        delete newState[description.toLowerCase()];
+        return newState;
+    });
   };
 
-  const handleAddWorkout = (workout: Workout) => setWorkouts([workout, ...workouts]);
+  // Workout Handlers
+  const handleAddWorkout = (workout: Workout) => setWorkouts(prev => [workout, ...prev]);
+  const handleUpdateWorkout = (updatedWorkout: Workout) => setWorkouts(prev => prev.map(w => w.id === updatedWorkout.id ? updatedWorkout : w));
+  const handleDeleteWorkout = (id: string) => setWorkouts(prev => prev.filter(w => w.id !== id));
 
   const SidebarItem = ({ id, label, icon: Icon }: any) => (
     <button
@@ -184,7 +194,7 @@ function App() {
                 </div>
             </div>
             <div className="bg-card p-4 rounded-xl border border-gray-700">
-                <div className="text-gray-400 text-xs uppercase font-bold mb-1">Treinos (Semana)</div>
+                <div className="text-gray-400 text-xs uppercase font-bold mb-1">Treinos (Total)</div>
                 <div className="text-2xl font-bold text-white">
                     {workouts.length}
                 </div>
@@ -342,7 +352,9 @@ function App() {
             <WorkoutTracker 
                 protocol={activeProtocol} 
                 workouts={workouts} 
-                onAddWorkout={handleAddWorkout} 
+                onAddWorkout={handleAddWorkout}
+                onUpdateWorkout={handleUpdateWorkout}
+                onDeleteWorkout={handleDeleteWorkout}
             />
         )}
       </main>
