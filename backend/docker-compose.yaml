@@ -1,0 +1,103 @@
+# syntax=docker/dockerfile:1
+networks:
+  projetin:
+
+
+
+services:
+  # ---------- DATABASE
+  postgresql:
+    container_name: postgresql
+    hostname: postgresql
+    restart: always
+    image: postgres:16.13-alpine3.23
+    environment:
+      POSTGRES_DB: projetin
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - 5432:5432
+    networks:
+      - projetin
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # migrations:
+  #   hostname: migrations
+  #   container_name: migrations
+  #   restart: no
+  #   image: migrate/migrate:v4.17.1
+  #   command: -path=/migrations -database "postgres://root:root@postgresql:5432/projetin" -verbose up
+  #   environment:
+  #     POSTGRES_DB: projetin
+  #     POSTGRES_USER: root
+  #     POSTGRES_PASSWORD: root
+  #   volumes:
+  #     - ./backend/internal/infra/database/postgresql/migrations:/migrations
+  #   networks:
+  #     - projetin
+  #   depends_on:
+  #     postgresql:
+  #       condition: service_healthy
+
+  # pgadmin:
+  #   container_name: pgadmin
+  #   hostname: pgadmin
+  #   restart: always
+  #   image: dpage/pgadmin4:2024-07-25-1
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: root@domain.com
+  #     PGADMIN_DEFAULT_PASSWORD: root
+  #     POSTGRES_USER: root
+  #     POSTGRES_PASSWORD: root
+  #     POSTGRES_DB: projetin
+  #   ports:
+  #     - 8000:8000
+  #   networks:
+  #     - projetin
+  #   depends_on:
+  #     postgresql:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "PGPASSWORD=${POSTGRES_PASSWORD} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c 'SELECT 1;' || exit 1"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # ---------- CACHE
+  # redis:
+  #   container_name: redis
+  #   hostname: redis
+  #   restart: always
+  #   image: 7.4.1-alpine3.20
+  #   ports:
+  #     - 6379:6379
+  #   networks:
+  #     - projetin
+  #   healthcheck:
+  #     test: [ "CMD", "redis-cli", "ping" ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # insight:
+  #   container_name: insight
+  #   hostname: insight
+  #   restart: always
+  #   image: redis/redisinsight:2.60
+  #   ports:
+  #     - 5540:5540
+  #   networks:
+  #     - projetin
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "wget --spider --no-verbose --tries=1 --timeout=5 http://localhost:3000/api/health || exit 1"]
+  #     start_interval: 2s
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 3
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy

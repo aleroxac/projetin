@@ -1,0 +1,5 @@
+go.sum
+
+tmp/
+.tmp/
+internal/infra/database/postgresql/sqlc/
