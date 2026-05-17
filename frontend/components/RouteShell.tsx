@@ -35,6 +35,13 @@ function ShellFrame({ children }: { children: ReactNode }) {
         subtitle: "Structure your planning flow",
       };
     }
+    if (pathname === "/nutrition") {
+      return {
+        activeNav: "Nutrition",
+        title: "Nutrition",
+        subtitle: "AI-powered macro estimation",
+      };
+    }
     return null;
   }, [pathname]);
 

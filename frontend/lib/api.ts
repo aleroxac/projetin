@@ -520,6 +520,81 @@ export async function createDietPlan(data: {
   return mapDietPlan(await res.json());
 }
 
+// ── Macro Estimation ──────────────────────────────────────────────────────────
+
+export interface MealItem {
+  item: string;
+  quantity: number;
+  unit: string;
+  protein: number;
+  carbs: number;
+  fat: number;
+  calories: number;
+}
+
+export interface MacroEstimation {
+  id: string;
+  userID: string;
+  mealDescription: string;
+  mealItems: MealItem[];
+  protein: number;
+  carbs: number;
+  fat: number;
+  calories: number;
+}
+
+function mapMacroEstimation(r: any): MacroEstimation {
+  return {
+    id: r.id ?? "",
+    userID: r.user_id ?? r.userID ?? "",
+    mealDescription: r.meal_description ?? r.mealDescription ?? "",
+    mealItems: Array.isArray(r.meal_items)
+      ? r.meal_items.map((i: any) => ({
+          item: i.item ?? "",
+          quantity: i.quantity ?? 0,
+          unit: i.unit ?? "",
+          protein: i.protein ?? 0,
+          carbs: i.carbs ?? 0,
+          fat: i.fat ?? 0,
+          calories: i.calories ?? 0,
+        }))
+      : [],
+    protein: r.protein ?? 0,
+    carbs: r.carbs ?? 0,
+    fat: r.fat ?? 0,
+    calories: r.calories ?? 0,
+  };
+}
+
+export async function estimateMacros(
+  userId: string,
+  mealTitle: string,
+  mealDescription: string
+): Promise<MacroEstimation> {
+  const description = mealTitle
+    ? `[${mealTitle}] ${mealDescription}`
+    : mealDescription;
+  const res = await fetch("/api/macro-estimation", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, meal_description: description }),
+  });
+  if (!res.ok) throw new Error(`Erro ao estimar macros (${res.status})`);
+  return mapMacroEstimation(await res.json());
+}
+
+export async function listMacroEstimations(userId: string): Promise<MacroEstimation[]> {
+  const res = await fetch(`/api/macro-estimation?user_id=${userId}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Erro ao listar estimações (${res.status})`);
+  const data = await res.json();
+  return Array.isArray(data) ? data.map(mapMacroEstimation) : [];
+}
+
+export async function deleteMacroEstimation(id: string): Promise<void> {
+  const res = await fetch(`/api/macro-estimation/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`Erro ao excluir estimação (${res.status})`);
+}
+
 export async function fetchDietPlanAdherence(
   dietPlanId: string,
   userId: string

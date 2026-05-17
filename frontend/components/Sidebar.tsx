@@ -80,6 +80,7 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
     if (pathname === "/dashboard") return "Dashboard";
     if (pathname === "/assessments") return "Assessments";
     if (pathname === "/projects") return "Projects";
+    if (pathname === "/nutrition") return "Nutrition";
     return null;
   }, [pathname]);
 
@@ -208,6 +209,10 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
     }
     if (label === "Projects") {
       router.push("/projects");
+      return;
+    }
+    if (label === "Nutrition") {
+      router.push("/nutrition");
       return;
     }
     onNavChange?.(label);
