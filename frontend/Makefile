@@ -3,6 +3,9 @@
 # This allows `kill -- -PID` to terminate the entire tree at once.
 
 PID_FILE := .pid
+FRONTEND_PORT := 3000
+READINESS_MAX_RETRIES := 15
+READINESS_INTERVAL := 2
 
 ## ---------- UTILS
 default: help
@@ -21,11 +24,27 @@ clean: ## Clean temp files
 run: ## Run the frontend dev server
 	@npm run dev
 
+.PHONY: check.readiness
+check.readiness: ## Wait until the frontend is READY
+	@echo "Checking frontend readiness..."
+	@retries=0; \
+	until [ "$$(curl -s -o /dev/null -w '%{http_code}' http://localhost:$(FRONTEND_PORT)/api/v1/health/readiness)" = "200" ]; do \
+		retries=$$((retries + 1)); \
+		if [ $$retries -ge $(READINESS_MAX_RETRIES) ]; then \
+			echo "  frontend not ready after $(READINESS_MAX_RETRIES) retries, aborting."; \
+			exit 1; \
+		fi; \
+		echo "  not ready, retrying in $(READINESS_INTERVAL)s... ($$retries/$(READINESS_MAX_RETRIES))"; \
+		sleep $(READINESS_INTERVAL); \
+	done
+	@echo "Frontend is READY."
+
 .PHONY: up
 up: ## Start the frontend in the background
 	@echo "Starting Frontend..."
 	@setsid $(MAKE) run > nohup.out 2>&1 & echo $$! > $(PID_FILE)
 	@echo "Frontend started (PID: $$(cat $(PID_FILE)))"
+	@$(MAKE) check.readiness
 
 .PHONY: down
 down: ## Stop the frontend
@@ -46,3 +65,4 @@ reload: ## Restart the frontend
 	fi
 	@setsid $(MAKE) run > nohup.out 2>&1 & echo $$! > $(PID_FILE)
 	@echo "Frontend reloaded (PID: $$(cat $(PID_FILE)))"
+	@$(MAKE) check.readiness

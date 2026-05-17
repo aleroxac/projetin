@@ -20,6 +20,8 @@ $(foreach var, $(shell sed 's/=.*//' $(conf)), \
 PID_FILE := .pid
 DB_WAIT_MAX_RETRIES := 10
 DB_WAIT_INTERVAL := 2
+READINESS_MAX_RETRIES := 15
+READINESS_INTERVAL := 2
 
 ## ---------- UTILS
 default: help
@@ -194,6 +196,21 @@ wait.db: ## Wait until PostgreSQL is ready to accept connections
 	done
 	@echo "Database is ready."
 
+.PHONY: check.readiness
+check.readiness: ## Wait until the backend is READY
+	@echo "Checking backend readiness..."
+	@retries=0; \
+	until [ "$$(curl -s -o /dev/null -w '%{http_code}' http://localhost:$(API_PORT)/api/v1/health/readiness)" = "200" ]; do \
+		retries=$$((retries + 1)); \
+		if [ $$retries -ge $(READINESS_MAX_RETRIES) ]; then \
+			echo "  backend not ready after $(READINESS_MAX_RETRIES) retries, aborting."; \
+			exit 1; \
+		fi; \
+		echo "  not ready, retrying in $(READINESS_INTERVAL)s... ($$retries/$(READINESS_MAX_RETRIES))"; \
+		sleep $(READINESS_INTERVAL); \
+	done
+	@echo "Backend is READY."
+
 .PHONY: up
 up: ## Run the backend
 	@echo "Starting Backend..."
@@ -204,6 +221,7 @@ up: ## Run the backend
 	@$(MAKE) migration.up
 	@setsid $(MAKE) run > nohup.out 2>&1 & echo $$! > $(PID_FILE)
 	@echo "Backend started (PID: $$(cat $(PID_FILE)))"
+	@$(MAKE) check.readiness
 
 .PHONY: down
 down: ## Stop the backend app and docker-compose services
@@ -227,3 +245,4 @@ reload: ## Restart the backend app process
 	@$(MAKE) sqlc.gen
 	@setsid $(MAKE) run > nohup.out 2>&1 & echo $$! > $(PID_FILE)
 	@echo "Backend reloaded (PID: $$(cat $(PID_FILE)))"
+	@$(MAKE) check.readiness
