@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProjetIn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    :root {
+      --bg: #09090b;
+      --bg2: #111113;
+      --bg3: #18181b;
+      --bg4: #1c1c1f;
+      --border: rgba(255, 255, 255, .07);
+      --border2: rgba(255, 255, 255, .12);
+      --text: #fafafa;
+      --text2: #a1a1aa;
+      --text3: #52525b;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --purple: #8b5cf6;
+      --red: #ef4444;
+      --sidebar-w: 220px;
+      --header-h: 54px;
+      --footer-h: 40px;
+      --radius: 10px;
+      --radius-sm: 7px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    /* ── LAYOUT SHELL ── */
+    .shell {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      grid-template-rows: var(--header-h) 1fr var(--footer-h);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      grid-row: 1 / 4;
+      grid-column: 1;
+      background: var(--bg2);
+      border-right: 0.5px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-logo {
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 18px;
+      border-bottom: 0.5px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      font-size: 12px;
+      color: #fff;
+      letter-spacing: -.5px;
+    }
+
+    .logo-name {
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -.3px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-section {
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      padding: 10px 8px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text2);
+      font-size: 13px;
+      transition: background .12s, color .12s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item:hover {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: var(--bg4);
+      color: var(--text);
+    }
+
+    .nav-item .icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      opacity: .7;
+    }
+
+    .nav-item.active .icon {
+      opacity: 1;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 99px;
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .sidebar-footer {
+      padding: 12px 14px;
+      border-top: 0.5px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      flex-shrink: 0;
+    }
+
+    .user-info .name {
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .user-info .role {
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    /* ── HEADER ── */
+    .header {
+      grid-row: 1;
+      grid-column: 2;
+      background: var(--bg2);
+      border-bottom: 0.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      gap: 16px;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: -.2px;
+    }
+
+    .header-sub {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 1px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .badge-green {
+      background: rgba(34, 197, 94, .12);
+      color: #86efac;
+    }
+
+    .badge-blue {
+      background: rgba(59, 130, 246, .12);
+      color: #93c5fd;
+    }
+
+    .badge-amber {
+      background: rgba(245, 158, 11, .12);
+      color: #fcd34d;
+    }
+
+    .badge-red {
+      background: rgba(239, 68, 68, .12);
+      color: #fca5a5;
+    }
+
+    .btn-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border2);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text2);
+      transition: background .12s;
+    }
+
+    .btn-icon:hover {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    .btn-primary {
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: opacity .15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary:hover {
+      opacity: .85;
+    }
+
+    /* ── MAIN CONTENT ── */
+    .main {
+      grid-row: 2;
+      grid-column: 2;
+      overflow-y: auto;
+      padding: 20px 24px;
+      background: var(--bg);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      grid-row: 3;
+      grid-column: 2;
+      background: var(--bg2);
+      border-top: 0.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: var(--bg3);
+      border-radius: var(--radius);
+      width: fit-content;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 6px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: all .15s;
+      background: transparent;
+      color: var(--text3);
+    }
+
+    .tab.active {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ── WIDGETS GRID (DRAG) ── */
+    .widget-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      min-height: 200px;
+    }
+
+    .widget-grid.two-col {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .widget-grid.one-col {
+      grid-template-columns: 1fr;
+    }
+
+    /* ── WIDGET CARD ── */
+    .widget {
+      background: var(--bg3);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: box-shadow .15s, border-color .15s;
+      cursor: grab;
+      position: relative;
+    }
+
+    .widget:active {
+      cursor: grabbing;
+    }
+
+    .widget.sortable-ghost {
+      opacity: .35;
+      border: 1.5px dashed var(--blue);
+      background: rgba(59, 130, 246, .05);
+    }
+
+    .widget.sortable-chosen {
+      box-shadow: 0 0 0 1.5px var(--blue);
+      border-color: var(--blue);
+      z-index: 10;
+    }
+
+    .widget.span2 {
+      grid-column: span 2;
+    }
+
+    .widget.span3 {
+      grid-column: span 3;
+    }
+
+    .widget-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px 0;
+    }
+
+    .widget-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    .widget-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .widget:hover .widget-actions {
+      opacity: 1;
+    }
+
+    .wbtn {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--text3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: background .1s, color .1s;
+    }
+
+    .wbtn:hover {
+      background: var(--bg4);
+      color: var(--text);
+    }
+
+    .wbtn.danger:hover {
+      background: rgba(239, 68, 68, .15);
+      color: var(--red);
+    }
+
+    .widget-body {
+      padding: 10px 14px 14px;
+    }
+
+    /* ── METRIC WIDGETS ── */
+    .metric-val {
+      font-size: 26px;
+      font-weight: 500;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: -1px;
+      line-height: 1;
+      margin: 6px 0 2px;
+    }
+
+    .metric-sub {
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    .metric-trend {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+    }
+
+    .trend-up {
+      color: #86efac;
+    }
+
+    .trend-down {
+      color: #fca5a5;
+    }
+
+    .trend-neutral {
+      color: var(--text3);
+    }
+
+    /* ── PROGRESS ── */
+    .prog-row {
+      margin-bottom: 10px;
+    }
+
+    .prog-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 4px;
+      color: var(--text2);
+    }
+
+    .prog-track {
+      height: 5px;
+      background: var(--bg4);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .prog-fill {
+      height: 100%;
+      border-radius: 99px;
+    }
+
+    /* ── LIST ROWS ── */
+    .list-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 12px;
+    }
+
+    .list-row:last-child {
+      border-bottom: none;
+    }
+
+    .list-label {
+      color: var(--text2);
+    }
+
+    .list-val {
+      font-weight: 500;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+    }
+
+    /* ── ADD WIDGET PALETTE ── */
+    .add-zone {
+      border: 1.5px dashed var(--border2);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 80px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      color: var(--text3);
+      font-size: 12px;
+      gap: 6px;
+    }
+
+    .add-zone:hover {
+      border-color: var(--blue);
+      background: rgba(59, 130, 246, .04);
+      color: var(--blue);
+    }
+
+    .palette-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, .6);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .palette-overlay.open {
+      display: flex;
+    }
+
+    .palette-box {
+      background: var(--bg2);
+      border: 0.5px solid var(--border2);
+      border-radius: 14px;
+      padding: 20px;
+      width: 520px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .palette-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .palette-sub {
+      font-size: 12px;
+      color: var(--text3);
+      margin-bottom: 16px;
+    }
+
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .palette-item {
+      padding: 14px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color .12s, background .12s;
+    }
+
+    .palette-item:hover {
+      border-color: var(--blue);
+      background: rgba(59, 130, 246, .05);
+    }
+
+    .palette-item .pi-icon {
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+
+    .palette-item .pi-name {
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .palette-item .pi-desc {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+
+    .palette-close {
+      float: right;
+      background: none;
+      border: none;
+      color: var(--text3);
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+      margin-top: -2px;
+    }
+
+    .palette-close:hover {
+      color: var(--text);
+    }
+
+    /* ── CHART WRAPPERS ── */
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    /* ── INSIGHT CARD ── */
+    .insight {
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .insight:last-child {
+      margin-bottom: 0;
+    }
+
+    .insight-title {
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .insight-body {
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    .insight.green {
+      background: rgba(34, 197, 94, .07);
+      border: 0.5px solid rgba(34, 197, 94, .2);
+    }
+
+    .insight.green .insight-title {
+      color: #86efac;
+    }
+
+    .insight.amber {
+      background: rgba(245, 158, 11, .07);
+      border: 0.5px solid rgba(245, 158, 11, .2);
+    }
+
+    .insight.amber .insight-title {
+      color: #fcd34d;
+    }
+
+    .insight.blue {
+      background: rgba(59, 130, 246, .07);
+      border: 0.5px solid rgba(59, 130, 246, .2);
+    }
+
+    .insight.blue .insight-title {
+      color: #93c5fd;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 56px;
+      right: 20px;
+      background: var(--bg3);
+      border: 0.5px solid var(--border2);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--text2);
+      z-index: 999;
+      transform: translateY(10px);
+      opacity: 0;
+      transition: all .25s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">PI</div>
+        <span class="logo-name">ProjetIn</span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">Principal</div>
+        <button class="nav-item active" onclick="setNav(this)">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+          Dashboard
+        </button>
+        <button class="nav-item" onclick="setNav(this)">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+            <rect x="9" y="3" width="6" height="4" rx="1" />
+            <path d="m9 14 2 2 4-4" />
+          </svg>
+          Assessments
+          <span class="nav-badge">3</span>
+        </button>
+        <button class="nav-item" onclick="setNav(this)">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 8v4l3 3" />
+          </svg>
+          Projetos
+        </button>
+        <div class="nav-section">Saúde</div>
+        <button class="nav-item" onclick="setNav(this)" style="color: #86efac;">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+            <line x1="6" y1="1" x2="6" y2="4" />
+            <line x1="10" y1="1" x2="10" y2="4" />
+            <line x1="14" y1="1" x2="14" y2="4" />
+          </svg>
+          Nutrição
+        </button>
+        <button class="nav-item" onclick="setNav(this)" style="color: #c4b5fd;">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M6 4v16" />
+            <path d="M18 4v16" />
+            <path d="M6 8h12" />
+            <path d="M6 16h12" />
+          </svg>
+          Treinos
+        </button>
+        <button class="nav-item" onclick="setNav(this)">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+          Analytics
+        </button>
+        <div class="nav-section">Sistema</div>
+        <button class="nav-item" onclick="setNav(this)">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+            <path d="M4.93 4.93a10 10 0 0 0 0 14.14" />
+          </svg>
+          Utils
+        </button>
+        <button class="nav-item" onclick="setNav(this)">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path
+              d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          Configurações
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-row">
+          <div class="avatar"></div>
+          <div class="user-info">
+            <div class="name">acardoso</div>
+            <div class="role">Atleta Pro</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-left">
+        <span class="header-title">Daily Overview</span>
+        <span class="header-sub">Sexta-feira, 27 de março de 2026</span>
+      </div>
+      <div class="header-right">
+        <span class="badge badge-green">Semana ativa</span>
+        <span class="badge badge-blue">Treino 13:30</span>
+        <span class="badge badge-amber">-480 kcal déficit</span>
+        <button class="btn-icon" title="Notificações">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+        </button>
+        <button class="btn-primary" onclick="openPalette()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Widget
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('treino', this)">Treino</button>
+        <button class="tab" onclick="switchTab('dieta', this)">Dieta</button>
+        <button class="tab" onclick="switchTab('shape', this)">Shape</button>
+      </div>
+
+      <!-- TREINO TAB -->
+      <div id="tab-treino" class="widget-grid" data-tab="treino">
+
+        <div class="widget" data-id="w-vol">
+          <div class="widget-header">
+            <span class="widget-title">Volume semanal</span>
+            <div class="widget-actions">
+              <button class="wbtn danger" onclick="removeWidget(this)" title="Remover">✕</button>
+            </div>
+          </div>
+          <div class="widget-body">
+            <div class="metric-val">18.4<span style="font-size:14px;color:var(--text3)">t</span></div>
+            <div class="metric-sub"><span class="metric-trend trend-up">↑ 12% vs sem. passada</span></div>
+          </div>
+        </div>
+
+        <div class="widget" data-id="w-sess">
+          <div class="widget-header">
+            <span class="widget-title">Sessões</span>
+            <div class="widget-actions">
+              <button class="wbtn danger" onclick="removeWidget(this)" title="Remover">✕</button>
+            </div>
+          </div>
+          <div class="widget-body">
+            <div class="metric-val">5<span style="font-size:14px;color:var(--text3)">/6</span></div>
+            <div class="metric-sub"><span class="badge badge-amber">1 restante hoje</span></div>
+          </div>
+        </div>
+
+        <div class="widget" data-id="w-pr">
+          <div class="widget-header">
+            <span class="widget-title">PRs esta semana</span>
+            <div class="widget-actions">
+              <button class="wbtn danger" onclick="removeWidget(this)" title="Remover">✕</button>
+            </div>
+          </div>
+          <div class="widget-body">
+            <div class="metric-val">3</div>
+            <div class="metric-sub">Supino · Agachamento · Remada</div>
+          </div>
+        </div>
+
+        <div class="widget span2" data-id="w-vol-chart">
+          <div class="widget-header">
+            <span class="widget-title">Volume por grupo muscular</span>
+            <div class="widget-actions">
+              <button class="wbtn danger" onclick="removeWidget(this)" title="Remover">✕</button>
+            </div>
+          </div>
+          <div class="widget-body">
+            <div class="chart-wrap" style="height:180px"><canvas id="c-vol"></canvas></div>
+          </div>
+        </div>
+
+        <div class="widget" data-id="w-dur">
+          <div class="widget-header">
+            <span class="widget-title">Duração média</span>
+            <div class="widget-actions">
+              <button class="wbtn danger" onclick="removeWidget(this)" title="Remover">✕</button>
+            </div>
+          </div>
+          <div class="widget-body">
+            <div class="metric-val">67<span style="font-size:14px;color:var(--text3)">min</span></div>
+            <div class="metric-sub"><span class="metric-trend trend-up">↑ Meta: 60 min</span></div>
+          </div>
+        </div>
+
+        <div class="widget span3" data-id="w-sessoes">
+          <div class="widget-header">
+            <span class="widget-title">Sessões desta semana</span>
+            <div class="widget-actions">
+              <button class="wbtn danger" onclick="removeWidget(this)" title="Remover">✕</button>
+            </div>
+          </div>
+          <div class="widget-body">
+            <div class="list-row">
+              <div>
+                <div style="font-size:13px;font-weight:500">Seg — Peito + Tríceps</div>
+                <div style="font-size:11px;color:var(--text3)">Supino 100kg 4×8 · PR</div>
+              </div><span class="badge badge-green">Feito</span>
+            </div>
+            <div class="list-row">
+              <div>
+                <div style="font-size:13px;font-weight:500">Ter — Costas + Bíceps</div>
+                <div style="font-size:11px;color:var(--text3)">Remada 90kg 4×10 · PR</div>
+              </div><span class="badge badge-green">Feito</span>
+            </div>
+            <div class="list-row">
+              <div>
+                <div style="font-size:13px;font-weight:500">Qua — Pernas</div>
+                <div style="font-size:11px;color:var(--text3)">Agachamento 120kg 5×5 · PR</div>
+              </div><span class="badge badge-green">Feito</span>
+            </div>
+            <div class="list-row">
+              <div>
+                <div style="font-size:13px;font-weight:500">Qui — Ombro + Trapézio</div>
+                <div style="font-size:11px;color:var(--text3)">Desenvolvimento 72kg 4×8</div>
+              </div><span class="badge badge-green">Feito</span>
+            </div>
+            <div class="list-row">
+              <div>
+                <div style="font-size:13px;font-weight:500">Sex — Full Body / Cardio</div>
+                <div style="font-size:11px;color:var(--text3)">Agendado 13:30</div>
+              </div><span class="badge badge-blue">Hoje</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="widget span3" data-id="w-treino-chart">
+          <div class="widget-header">
+            <span class="widget-title">Sessões completadas — 4 semanas</span>
+            <div class="widget-actions">
+              <button class="wbtn danger" onclick="removeWidget(this)" title="Remover">✕</button>
+            </div>
+          </div>
+          <div class="widget-body">
+            <div class="chart-wrap" style="height:160px"><canvas id="c-sess"></canvas></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- DIETA TAB -->
+      <div id="tab-dieta" class="widget-grid" data-tab="dieta" style="display:none">
+
+        <div class="widget" data-id="d-kcal">
+          <div class="widget-header"><span class="widget-title">Calorias hoje</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="metric-val">1240<span style="font-size:14px;color:var(--text3)">/1850</span></div>
+            <div class="metric-sub"><span class="badge badge-amber">610 restantes</span></div>
+          </div>
+        </div>
+
+        <div class="widget" data-id="d-prot">
+          <div class="widget-header"><span class="widget-title">Proteína</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="metric-val">110<span style="font-size:14px;color:var(--text3)">/150g</span></div>
+            <div class="metric-sub"><span class="metric-trend trend-up">73% da meta</span></div>
+          </div>
+        </div>
+
+        <div class="widget" data-id="d-carb">
+          <div class="widget-header"><span class="widget-title">Carboidratos</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="metric-val">140<span style="font-size:14px;color:var(--text3)">/165g</span></div>
+            <div class="metric-sub"><span class="metric-trend trend-neutral">85% da meta</span></div>
+          </div>
+        </div>
+
+        <div class="widget span2" data-id="d-macros">
+          <div class="widget-header"><span class="widget-title">Macros de hoje</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="prog-row">
+              <div class="prog-header"><span>Proteína</span><span style="color:#86efac">110 / 150g</span></div>
+              <div class="prog-track">
+                <div class="prog-fill" style="width:73%;background:#22c55e"></div>
+              </div>
+            </div>
+            <div class="prog-row">
+              <div class="prog-header"><span>Carboidratos</span><span style="color:#fcd34d">140 / 165g</span></div>
+              <div class="prog-track">
+                <div class="prog-fill" style="width:85%;background:#f59e0b"></div>
+              </div>
+            </div>
+            <div class="prog-row">
+              <div class="prog-header"><span>Gordura</span><span style="color:#93c5fd">38 / 55g</span></div>
+              <div class="prog-track">
+                <div class="prog-fill" style="width:69%;background:#3b82f6"></div>
+              </div>
+            </div>
+            <div class="prog-row" style="margin-bottom:0">
+              <div class="prog-header"><span>Calorias totais</span><span>1240 / 1850</span></div>
+              <div class="prog-track">
+                <div class="prog-fill" style="width:67%;background:#8b5cf6"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="widget" data-id="d-deficit">
+          <div class="widget-header"><span class="widget-title">Déficit médio</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="metric-val">-480<span style="font-size:14px;color:var(--text3)">kcal</span></div>
+            <div class="metric-sub"><span class="badge badge-green">No alvo</span></div>
+          </div>
+        </div>
+
+        <div class="widget span3" data-id="d-cal-chart">
+          <div class="widget-header"><span class="widget-title">Calorias — últimos 7 dias</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="chart-wrap" style="height:160px"><canvas id="c-cal"></canvas></div>
+          </div>
+        </div>
+
+        <div class="widget span3" data-id="d-refeicoes">
+          <div class="widget-header"><span class="widget-title">Refeições de hoje</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="list-row">
+              <div>
+                <div style="font-size:13px;font-weight:500">Café da manhã</div>
+                <div style="font-size:11px;color:var(--text3)">4 ovos mexidos + 2 torradas + café</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:13px;font-weight:500">480 kcal</div>
+                <div style="font-size:11px;color:var(--text3)">P 32g · C 28g · G 18g</div>
+              </div>
+            </div>
+            <div class="list-row">
+              <div>
+                <div style="font-size:13px;font-weight:500">Almoço</div>
+                <div style="font-size:11px;color:var(--text3)">Frango grelhado 180g + arroz + salada</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:13px;font-weight:500">560 kcal</div>
+                <div style="font-size:11px;color:var(--text3)">P 52g · C 68g · G 10g</div>
+              </div>
+            </div>
+            <div class="list-row">
+              <div>
+                <div style="font-size:13px;font-weight:500">Lanche <span class="badge badge-amber"
+                    style="margin-left:6px">pendente</span></div>
+                <div style="font-size:11px;color:var(--text3)">1 lata de atum + fruta</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:13px;font-weight:500;color:var(--text3)">~200 kcal</div>
+              </div>
+            </div>
+            <div class="list-row">
+              <div>
+                <div style="font-size:13px;font-weight:500">Jantar <span class="badge"
+                    style="background:var(--bg4);color:var(--text3);margin-left:6px">pendente</span></div>
+                <div style="font-size:11px;color:var(--text3)">Salmão + batata doce</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:13px;font-weight:500;color:var(--text3)">~610 kcal</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SHAPE TAB -->
+      <div id="tab-shape" class="widget-grid" data-tab="shape" style="display:none">
+
+        <div class="widget" data-id="s-peso">
+          <div class="widget-header"><span class="widget-title">Peso atual</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="metric-val">84.2<span style="font-size:14px;color:var(--text3)">kg</span></div>
+            <div class="metric-sub"><span class="metric-trend trend-up">↓ 0.6kg esta semana</span></div>
+          </div>
+        </div>
+
+        <div class="widget" data-id="s-bf">
+          <div class="widget-header"><span class="widget-title">BF% estimado</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="metric-val">16.4<span style="font-size:14px;color:var(--text3)">%</span></div>
+            <div class="metric-sub">Meta: 12%</div>
+          </div>
+        </div>
+
+        <div class="widget" data-id="s-magra">
+          <div class="widget-header"><span class="widget-title">Massa magra</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="metric-val">70.4<span style="font-size:14px;color:var(--text3)">kg</span></div>
+            <div class="metric-sub"><span class="metric-trend trend-up">↑ +0.3kg no corte</span></div>
+          </div>
+        </div>
+
+        <div class="widget span2" data-id="s-peso-chart">
+          <div class="widget-header"><span class="widget-title">Evolução do peso — 8 semanas</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="chart-wrap" style="height:180px"><canvas id="c-peso"></canvas></div>
+          </div>
+        </div>
+
+        <div class="widget" data-id="s-comp">
+          <div class="widget-header"><span class="widget-title">Composição corporal</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="chart-wrap" style="height:180px"><canvas id="c-comp"></canvas></div>
+          </div>
+        </div>
+
+        <div class="widget" data-id="s-medidas">
+          <div class="widget-header"><span class="widget-title">Medidas</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="list-row"><span class="list-label">Cintura</span><span class="list-val">82 cm</span></div>
+            <div class="list-row"><span class="list-label">Abdômen</span><span class="list-val">86 cm</span></div>
+            <div class="list-row"><span class="list-label">Peitoral</span><span class="list-val">108 cm</span></div>
+            <div class="list-row"><span class="list-label">Braço D</span><span class="list-val">40 cm</span></div>
+            <div class="list-row"><span class="list-label">Coxa D</span><span class="list-val">62 cm</span></div>
+          </div>
+        </div>
+
+        <div class="widget" data-id="s-prog">
+          <div class="widget-header"><span class="widget-title">Progresso shape</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="prog-row">
+              <div class="prog-header"><span>BF% reduzido</span><span style="color:#86efac">38%</span></div>
+              <div class="prog-track">
+                <div class="prog-fill" style="width:38%;background:#22c55e"></div>
+              </div>
+            </div>
+            <div class="prog-row">
+              <div class="prog-header"><span>Peso perdido</span><span style="color:#93c5fd">3.8 / 10kg</span></div>
+              <div class="prog-track">
+                <div class="prog-fill" style="width:38%;background:#3b82f6"></div>
+              </div>
+            </div>
+            <div class="prog-row" style="margin-bottom:0">
+              <div class="prog-header"><span>Cintura</span><span style="color:#fcd34d">82 / 76cm</span></div>
+              <div class="prog-track">
+                <div class="prog-fill" style="width:30%;background:#f59e0b"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="widget" data-id="s-insights">
+          <div class="widget-header"><span class="widget-title">Insights</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="insight green">
+              <div class="insight-title">Retenção muscular</div>
+              <div class="insight-body">Massa magra estável durante o corte.</div>
+            </div>
+            <div class="insight amber">
+              <div class="insight-title">Ritmo de perda</div>
+              <div class="insight-body">0.6kg/sem acima do ideal. Ajuste o déficit.</div>
+            </div>
+            <div class="insight blue">
+              <div class="insight-title">Previsão</div>
+              <div class="insight-body">Meta atingível até 12 de junho de 2026.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="widget" data-id="s-semanas">
+          <div class="widget-header"><span class="widget-title">Semanas para meta</span>
+            <div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div>
+          </div>
+          <div class="widget-body">
+            <div class="metric-val">~11<span style="font-size:14px;color:var(--text3)">sem</span></div>
+            <div class="metric-sub">A 0.5kg/sem · Meta: 78kg 12%BF</div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <span>ProjetIn v2.4 · Semana 13</span>
+      <span id="footer-count">Arraste os widgets para reorganizar · Clique ✕ para remover</span>
+      <span>acardoso · Plano Pro</span>
+    </footer>
+
+  </div>
+
+  <!-- PALETTE OVERLAY -->
+  <div class="palette-overlay" id="palette" onclick="closePaletteOuter(event)">
+    <div class="palette-box">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:4px">
+        <div>
+          <div class="palette-title">Adicionar widget</div>
+          <div class="palette-sub">Clique para adicionar ao dashboard atual</div>
+        </div>
+        <button class="palette-close" onclick="closePalette()">×</button>
+      </div>
+      <div class="palette-grid" id="palette-grid"></div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── CHARTS ──
+    const dg = { color: 'rgba(255,255,255,.05)' };
+    const tk = { color: '#52525b', font: { size: 10, family: 'DM Mono' } };
+    const base = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#18181b', borderColor: '#27272a', borderWidth: 1, titleColor: '#a1a1aa', bodyColor: '#fafafa', padding: 8 } } };
+
+    setTimeout(() => {
+      new Chart(document.getElementById('c-vol'), {
+        type: 'bar',
+        data: { labels: ['Peito', 'Costas', 'Pernas', 'Ombro', 'Bíceps', 'Tríceps'], datasets: [{ data: [3200, 4100, 5400, 2800, 1900, 2200], backgroundColor: '#3b82f6', borderRadius: 5, borderSkipped: false }] },
+        options: { ...base, scales: { x: { grid: dg, ticks: tk, border: { color: '#27272a' } }, y: { grid: dg, ticks: { ...tk, callback: v => (v / 1000).toFixed(1) + 't' }, border: { color: '#27272a' } } } }
+      });
+      new Chart(document.getElementById('c-sess'), {
+        type: 'bar',
+        data: { labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'], datasets: [{ label: 'Feitas', data: [5, 4, 6, 5], backgroundColor: '#6366f1', borderRadius: 5, borderSkipped: false }, { label: 'Meta', data: [6, 6, 6, 6], backgroundColor: '#27272a', borderRadius: 5, borderSkipped: false }] },
+        options: { ...base, plugins: { ...base.plugins, legend: { display: true, position: 'top', labels: { color: '#52525b', font: { size: 10 }, boxWidth: 8, boxHeight: 8, padding: 10 } } }, scales: { x: { grid: dg, ticks: tk, border: { color: '#27272a' } }, y: { grid: dg, ticks: tk, max: 7, border: { color: '#27272a' } } } }
+      });
+      new Chart(document.getElementById('c-cal'), {
+        type: 'line',
+        data: { labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'], datasets: [{ data: [1820, 1740, 1900, 1680, 1240, null, null], borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,.08)', fill: true, tension: .35, pointRadius: 3, pointBackgroundColor: '#6366f1', spanGaps: false }, { data: [1850, 1850, 1850, 1850, 1850, 1850, 1850], borderColor: '#27272a', borderDash: [4, 3], pointRadius: 0, fill: false }] },
+        options: { ...base, scales: { x: { grid: dg, ticks: tk, border: { color: '#27272a' } }, y: { grid: dg, ticks: tk, border: { color: '#27272a' } } } }
+      });
+      new Chart(document.getElementById('c-peso'), {
+        type: 'line',
+        data: { labels: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'], datasets: [{ data: [88.0, 87.4, 86.8, 86.2, 85.7, 85.1, 84.6, 84.2], borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.07)', fill: true, tension: .35, pointRadius: 3, pointBackgroundColor: '#22c55e' }, { data: [88.0, 87.5, 87.0, 86.5, 86.0, 85.5, 85.0, 84.5], borderColor: '#27272a', borderDash: [4, 3], pointRadius: 0, fill: false }] },
+        options: { ...base, scales: { x: { grid: dg, ticks: tk, border: { color: '#27272a' } }, y: { grid: dg, ticks: { ...tk, callback: v => v + 'kg' }, border: { color: '#27272a' } } } }
+      });
+      new Chart(document.getElementById('c-comp'), {
+        type: 'doughnut',
+        data: { labels: ['Massa magra (70.4kg)', 'Gordura (13.8kg)'], datasets: [{ data: [70.4, 13.8], backgroundColor: ['#3b82f6', '#f59e0b'], borderWidth: 0, hoverOffset: 4 }] },
+        options: { ...base, cutout: '68%', plugins: { ...base.plugins, legend: { display: true, position: 'bottom', labels: { color: '#71717a', font: { size: 10 }, padding: 10, boxWidth: 8, boxHeight: 8 } } } }
+      });
+    }, 100);
+
+    // ── TABS ──
+    function switchTab(id, btn) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.widget-grid').forEach(g => g.style.display = 'none');
+      btn.classList.add('active');
+      document.getElementById('tab-' + id).style.display = 'grid';
+      currentTab = id;
+      initSortable(id);
+    }
+
+    // ── NAV ──
+    function setNav(btn) {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    // ── DRAG & DROP ──
+    let currentTab = 'treino';
+    const sortables = {};
+
+    function initSortable(tabId) {
+      if (sortables[tabId]) return;
+      const el = document.getElementById('tab-' + tabId);
+      sortables[tabId] = new Sortable(el, {
+        animation: 180,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        handle: '.widget',
+        filter: '.wbtn',
+        onEnd() { showToast('Layout salvo'); }
+      });
+    }
+    initSortable('treino');
+
+    // ── REMOVE WIDGET ──
+    function removeWidget(btn) {
+      const w = btn.closest('.widget');
+      w.style.transition = 'opacity .2s, transform .2s';
+      w.style.opacity = '0';
+      w.style.transform = 'scale(.95)';
+      setTimeout(() => { w.remove(); showToast('Widget removido'); }, 200);
+    }
+
+    // ── PALETTE ──
+    const WIDGETS = {
+      treino: [
+        { id: 'w-vol', name: 'Volume semanal', desc: 'Total de tonelagem', icon: '📊' },
+        { id: 'w-sess', name: 'Sessões', desc: 'Contagem semanal', icon: '🗓' },
+        { id: 'w-pr', name: 'Personal Records', desc: 'PRs da semana', icon: '🏆' },
+        { id: 'w-dur', name: 'Duração média', desc: 'Tempo por sessão', icon: '⏱' },
+        { id: 'w-vol-chart', name: 'Volume por grupo', desc: 'Gráfico de barras', icon: '📈' },
+        { id: 'w-sessoes', name: 'Log de sessões', desc: 'Lista da semana', icon: '📋' },
+        { id: 'w-treino-chart', name: 'Histórico sessões', desc: 'Gráfico 4 semanas', icon: '📉' },
+      ],
+      dieta: [
+        { id: 'd-kcal', name: 'Calorias hoje', desc: 'Ingestão vs meta', icon: '🔥' },
+        { id: 'd-prot', name: 'Proteína', desc: 'Meta diária', icon: '💪' },
+        { id: 'd-carb', name: 'Carboidratos', desc: 'Meta diária', icon: '🌾' },
+        { id: 'd-deficit', name: 'Déficit calórico', desc: 'Média semanal', icon: '⚖️' },
+        { id: 'd-macros', name: 'Macros', desc: 'Barras de progresso', icon: '📊' },
+        { id: 'd-cal-chart', name: 'Calorias 7 dias', desc: 'Histórico da semana', icon: '📈' },
+        { id: 'd-refeicoes', name: 'Log de refeições', desc: 'Refeições do dia', icon: '🍽' },
+      ],
+      shape: [
+        { id: 's-peso', name: 'Peso atual', desc: 'Registro semanal', icon: '⚖️' },
+        { id: 's-bf', name: 'BF%', desc: 'Gordura corporal', icon: '📐' },
+        { id: 's-magra', name: 'Massa magra', desc: 'Músculo retido', icon: '💪' },
+        { id: 's-semanas', name: 'Semanas p/ meta', desc: 'Previsão de chegada', icon: '🎯' },
+        { id: 's-peso-chart', name: 'Evolução peso', desc: 'Gráfico 8 semanas', icon: '📉' },
+        { id: 's-comp', name: 'Composição', desc: 'Donut gordura/magra', icon: '🥧' },
+        { id: 's-medidas', name: 'Medidas', desc: 'Circunferências', icon: '📏' },
+        { id: 's-prog', name: 'Progresso shape', desc: 'Barras de meta', icon: '🏁' },
+        { id: 's-insights', name: 'Insights', desc: 'Análise automática', icon: '💡' },
+      ]
+    };
+
+    function openPalette() {
+      const grid = document.getElementById('palette-grid');
+      const tab = currentTab;
+      const existingIds = Array.from(document.getElementById('tab-' + tab).querySelectorAll('.widget')).map(w => w.dataset.id);
+      const available = (WIDGETS[tab] || []).filter(w => !existingIds.includes(w.id));
+      if (!available.length) {
+        showToast('Todos os widgets já estão no dashboard');
+        return;
+      }
+      grid.innerHTML = available.map(w => `
+    <div class="palette-item" onclick="addWidget('${w.id}', '${tab}', this)">
+      <div class="pi-icon">${w.icon}</div>
+      <div class="pi-name">${w.name}</div>
+      <div class="pi-desc">${w.desc}</div>
+    </div>
+  `).join('');
+      document.getElementById('palette').classList.add('open');
+    }
+
+    function closePalette() { document.getElementById('palette').classList.remove('open'); }
+    function closePaletteOuter(e) { if (e.target === document.getElementById('palette')) closePalette(); }
+
+    // Widget templates to re-add
+    const WIDGET_HTML = {
+      'w-vol': `<div class="widget" data-id="w-vol"><div class="widget-header"><span class="widget-title">Volume semanal</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="metric-val">18.4<span style="font-size:14px;color:var(--text3)">t</span></div><div class="metric-sub"><span class="metric-trend trend-up">↑ 12% vs sem. passada</span></div></div></div>`,
+      'w-sess': `<div class="widget" data-id="w-sess"><div class="widget-header"><span class="widget-title">Sessões</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="metric-val">5<span style="font-size:14px;color:var(--text3)">/6</span></div><div class="metric-sub"><span class="badge badge-amber">1 restante hoje</span></div></div></div>`,
+      'w-pr': `<div class="widget" data-id="w-pr"><div class="widget-header"><span class="widget-title">PRs esta semana</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="metric-val">3</div><div class="metric-sub">Supino · Agachamento · Remada</div></div></div>`,
+      'w-dur': `<div class="widget" data-id="w-dur"><div class="widget-header"><span class="widget-title">Duração média</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="metric-val">67<span style="font-size:14px;color:var(--text3)">min</span></div><div class="metric-sub"><span class="metric-trend trend-up">↑ Meta: 60 min</span></div></div></div>`,
+      'w-vol-chart': `<div class="widget span2" data-id="w-vol-chart"><div class="widget-header"><span class="widget-title">Volume por grupo muscular</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="chart-wrap" style="height:180px"><canvas id="c-vol-new"></canvas></div></div></div>`,
+      'w-sessoes': `<div class="widget span3" data-id="w-sessoes"><div class="widget-header"><span class="widget-title">Sessões desta semana</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="list-row"><div><div style="font-size:13px;font-weight:500">Seg — Peito + Tríceps</div></div><span class="badge badge-green">Feito</span></div><div class="list-row"><div><div style="font-size:13px;font-weight:500">Ter — Costas + Bíceps</div></div><span class="badge badge-green">Feito</span></div><div class="list-row"><div><div style="font-size:13px;font-weight:500">Sex — Full Body</div></div><span class="badge badge-blue">Hoje</span></div></div></div>`,
+      'w-treino-chart': `<div class="widget span3" data-id="w-treino-chart"><div class="widget-header"><span class="widget-title">Sessões completadas — 4 semanas</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="chart-wrap" style="height:160px"><canvas id="c-sess-new"></canvas></div></div></div>`,
+      'd-kcal': `<div class="widget" data-id="d-kcal"><div class="widget-header"><span class="widget-title">Calorias hoje</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="metric-val">1240<span style="font-size:14px;color:var(--text3)">/1850</span></div><div class="metric-sub"><span class="badge badge-amber">610 restantes</span></div></div></div>`,
+      'd-prot': `<div class="widget" data-id="d-prot"><div class="widget-header"><span class="widget-title">Proteína</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="metric-val">110<span style="font-size:14px;color:var(--text3)">/150g</span></div><div class="metric-sub"><span class="metric-trend trend-up">73% da meta</span></div></div></div>`,
+      'd-carb': `<div class="widget" data-id="d-carb"><div class="widget-header"><span class="widget-title">Carboidratos</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="metric-val">140<span style="font-size:14px;color:var(--text3)">/165g</span></div><div class="metric-sub"><span class="metric-trend trend-neutral">85% da meta</span></div></div></div>`,
+      'd-deficit': `<div class="widget" data-id="d-deficit"><div class="widget-header"><span class="widget-title">Déficit médio</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="metric-val">-480<span style="font-size:14px;color:var(--text3)">kcal</span></div><div class="metric-sub"><span class="badge badge-green">No alvo</span></div></div></div>`,
+      'd-macros': `<div class="widget span2" data-id="d-macros"><div class="widget-header"><span class="widget-title">Macros de hoje</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="prog-row"><div class="prog-header"><span>Proteína</span><span style="color:#86efac">110/150g</span></div><div class="prog-track"><div class="prog-fill" style="width:73%;background:#22c55e"></div></div></div><div class="prog-row"><div class="prog-header"><span>Carboidratos</span><span style="color:#fcd34d">140/165g</span></div><div class="prog-track"><div class="prog-fill" style="width:85%;background:#f59e0b"></div></div></div></div></div>`,
+      'd-cal-chart': `<div class="widget span3" data-id="d-cal-chart"><div class="widget-header"><span class="widget-title">Calorias — 7 dias</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="chart-wrap" style="height:160px"><canvas id="c-cal-new"></canvas></div></div></div>`,
+      'd-refeicoes': `<div class="widget span3" data-id="d-refeicoes"><div class="widget-header"><span class="widget-title">Refeições de hoje</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="list-row"><div style="font-size:13px;font-weight:500">Café da manhã</div><div style="font-size:13px;font-weight:500">480 kcal</div></div><div class="list-row"><div style="font-size:13px;font-weight:500">Almoço</div><div style="font-size:13px;font-weight:500">560 kcal</div></div></div></div>`,
+      's-peso': `<div class="widget" data-id="s-peso"><div class="widget-header"><span class="widget-title">Peso atual</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="metric-val">84.2<span style="font-size:14px;color:var(--text3)">kg</span></div><div class="metric-sub"><span class="metric-trend trend-up">↓ 0.6kg esta semana</span></div></div></div>`,
+      's-bf': `<div class="widget" data-id="s-bf"><div class="widget-header"><span class="widget-title">BF% estimado</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="metric-val">16.4<span style="font-size:14px;color:var(--text3)">%</span></div><div class="metric-sub">Meta: 12%</div></div></div>`,
+      's-magra': `<div class="widget" data-id="s-magra"><div class="widget-header"><span class="widget-title">Massa magra</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="metric-val">70.4<span style="font-size:14px;color:var(--text3)">kg</span></div><div class="metric-sub"><span class="metric-trend trend-up">↑ +0.3kg no corte</span></div></div></div>`,
+      's-semanas': `<div class="widget" data-id="s-semanas"><div class="widget-header"><span class="widget-title">Semanas p/ meta</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="metric-val">~11<span style="font-size:14px;color:var(--text3)">sem</span></div><div class="metric-sub">A 0.5kg/sem</div></div></div>`,
+      's-medidas': `<div class="widget" data-id="s-medidas"><div class="widget-header"><span class="widget-title">Medidas</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="list-row"><span class="list-label">Cintura</span><span class="list-val">82 cm</span></div><div class="list-row"><span class="list-label">Peitoral</span><span class="list-val">108 cm</span></div><div class="list-row"><span class="list-label">Braço D</span><span class="list-val">40 cm</span></div></div></div>`,
+      's-prog': `<div class="widget" data-id="s-prog"><div class="widget-header"><span class="widget-title">Progresso shape</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="prog-row"><div class="prog-header"><span>BF% reduzido</span><span style="color:#86efac">38%</span></div><div class="prog-track"><div class="prog-fill" style="width:38%;background:#22c55e"></div></div></div></div></div>`,
+      's-comp': `<div class="widget" data-id="s-comp"><div class="widget-header"><span class="widget-title">Composição</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="chart-wrap" style="height:180px"><canvas id="c-comp-new"></canvas></div></div></div>`,
+      's-peso-chart': `<div class="widget span2" data-id="s-peso-chart"><div class="widget-header"><span class="widget-title">Evolução peso</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="chart-wrap" style="height:180px"><canvas id="c-peso-new"></canvas></div></div></div>`,
+      's-insights': `<div class="widget" data-id="s-insights"><div class="widget-header"><span class="widget-title">Insights</span><div class="widget-actions"><button class="wbtn danger" onclick="removeWidget(this)">✕</button></div></div><div class="widget-body"><div class="insight green"><div class="insight-title">Retenção muscular</div><div class="insight-body">Massa magra estável no corte.</div></div><div class="insight amber"><div class="insight-title">Ritmo de perda</div><div class="insight-body">Ajuste o déficit para 0.5kg/sem.</div></div></div></div>`,
+    };
+
+    const chartFactories = {
+      'c-vol-new': (id) => new Chart(document.getElementById(id), { type: 'bar', data: { labels: ['Peito', 'Costas', 'Pernas', 'Ombro', 'Bíceps', 'Tríceps'], datasets: [{ data: [3200, 4100, 5400, 2800, 1900, 2200], backgroundColor: '#3b82f6', borderRadius: 5, borderSkipped: false }] }, options: { ...base, scales: { x: { grid: dg, ticks: tk, border: { color: '#27272a' } }, y: { grid: dg, ticks: { ...tk, callback: v => (v / 1000).toFixed(1) + 't' }, border: { color: '#27272a' } } } } }),
+      'c-sess-new': (id) => new Chart(document.getElementById(id), { type: 'bar', data: { labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'], datasets: [{ label: 'Feitas', data: [5, 4, 6, 5], backgroundColor: '#6366f1', borderRadius: 5, borderSkipped: false }, { label: 'Meta', data: [6, 6, 6, 6], backgroundColor: '#27272a', borderRadius: 5, borderSkipped: false }] }, options: { ...base, scales: { x: { grid: dg, ticks: tk, border: { color: '#27272a' } }, y: { grid: dg, ticks: tk, max: 7, border: { color: '#27272a' } } } } }),
+      'c-cal-new': (id) => new Chart(document.getElementById(id), { type: 'line', data: { labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'], datasets: [{ data: [1820, 1740, 1900, 1680, 1240, null, null], borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,.08)', fill: true, tension: .35, pointRadius: 3, spanGaps: false }, { data: [1850, 1850, 1850, 1850, 1850, 1850, 1850], borderColor: '#27272a', borderDash: [4, 3], pointRadius: 0, fill: false }] }, options: { ...base, scales: { x: { grid: dg, ticks: tk, border: { color: '#27272a' } }, y: { grid: dg, ticks: tk, border: { color: '#27272a' } } } } }),
+      'c-peso-new': (id) => new Chart(document.getElementById(id), { type: 'line', data: { labels: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'], datasets: [{ data: [88.0, 87.4, 86.8, 86.2, 85.7, 85.1, 84.6, 84.2], borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.07)', fill: true, tension: .35, pointRadius: 3 }, { data: [88.0, 87.5, 87.0, 86.5, 86.0, 85.5, 85.0, 84.5], borderColor: '#27272a', borderDash: [4, 3], pointRadius: 0, fill: false }] }, options: { ...base, scales: { x: { grid: dg, ticks: tk, border: { color: '#27272a' } }, y: { grid: dg, ticks: { ...tk, callback: v => v + 'kg' }, border: { color: '#27272a' } } } } }),
+      'c-comp-new': (id) => new Chart(document.getElementById(id), { type: 'doughnut', data: { labels: ['Massa magra', 'Gordura'], datasets: [{ data: [70.4, 13.8], backgroundColor: ['#3b82f6', '#f59e0b'], borderWidth: 0 }] }, options: { ...base, cutout: '68%', plugins: { ...base.plugins, legend: { display: true, position: 'bottom', labels: { color: '#71717a', font: { size: 10 }, padding: 10, boxWidth: 8, boxHeight: 8 } } } } }),
+    };
+
+    function addWidget(widgetId, tab, el) {
+      const html = WIDGET_HTML[widgetId];
+      if (!html) return;
+      const container = document.getElementById('tab-' + tab);
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const node = tmp.firstElementChild;
+      node.style.opacity = '0';
+      node.style.transform = 'scale(.95)';
+      container.appendChild(node);
+      requestAnimationFrame(() => {
+        node.style.transition = 'opacity .25s, transform .25s';
+        node.style.opacity = '1';
+        node.style.transform = 'scale(1)';
+      });
+      // init chart if needed
+      const canvasId = node.querySelector('canvas')?.id;
+      if (canvasId && chartFactories[canvasId]) {
+        setTimeout(() => chartFactories[canvasId](canvasId), 50);
+      }
+      el.closest('.palette-item').remove();
+      showToast('Widget adicionado');
+      if (!document.getElementById('palette-grid').children.length) closePalette();
+    }
+
+    // ── TOAST ──
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+    }
+  </script>
+</body>
+
+</html>

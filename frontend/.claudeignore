@@ -1,0 +1,9 @@
+package-lock.json
+
+.next/
+node_modules/
+
+../backend/internal/repository/
+../backend/internal/service/
+../backend/internal/db/
+../backend/cmd/
