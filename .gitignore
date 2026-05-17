@@ -4,12 +4,26 @@ TODO.md
 **/.docs
 **/.tmp
 **/.bkp
+*.log
+.DS_Store
+Thumbs.db
+
+# --- backend
+backend/tmp/
+backend/bin/
+backend/coverage.out
+backend/*.coverprofile
 
 # --- frontend
-.next/
-node_modules/
-test-results/
-playwright-report/
-blob-report/
-playwright/.cache/
-playwright/.auth/
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/.env.local
+frontend/.env.*.local
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/playwright/.cache/
+frontend/playwright/.auth/
+frontend/tsconfig.tsbuildinfo
+frontend/next-env.d.ts
