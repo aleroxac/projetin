@@ -23,8 +23,6 @@ test('test', async ({ page }) => {
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await page.getByRole('textbox', { name: 'My Fitness Project' }).click();
   await page.getByRole('textbox', { name: 'My Fitness Project' }).fill('Body Recomposition');
-  await page.getByRole('textbox', { name: 'My Fitness Project' }).press('ControlOrMeta+a');
-  await page.getByRole('textbox', { name: 'My Fitness Project' }).press('ControlOrMeta+c');
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await page.getByRole('textbox', { name: 'My Goal' }).click();
   await page.getByRole('textbox', { name: 'My Goal' }).fill('Body Recomposition');
