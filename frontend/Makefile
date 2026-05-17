@@ -44,7 +44,7 @@ check.readiness: ## Wait until the frontend is READY
 	@echo "Frontend is READY."
 
 .PHONY: up
-up: ## Start the frontend in the background
+up: down ## Start the frontend in the background
 	@echo "Starting Frontend..."
 	@setsid $(MAKE) run > nohup.out 2>&1 & echo $$! > $(PID_FILE)
 	@echo "Frontend started (PID: $$(cat $(PID_FILE)))"
@@ -56,17 +56,12 @@ down: ## Stop the frontend
 		echo "Stopping process group $$(cat $(PID_FILE))..."; \
 		kill -- -$$(cat $(PID_FILE)) 2>/dev/null || true; \
 		rm -f $(PID_FILE); \
-	else \
-		echo "No PID file found, app may not be running"; \
 	fi
+	@lsof -ti :$(FRONTEND_PORT) | xargs -r kill -9 2>/dev/null || true
+	@echo "Frontend stopped."
 
 .PHONY: reload
-reload: ## Restart the frontend
-	@if [ -f $(PID_FILE) ]; then \
-		echo "Stopping process group $$(cat $(PID_FILE))..."; \
-		kill -- -$$(cat $(PID_FILE)) 2>/dev/null || true; \
-		rm -f $(PID_FILE); \
-	fi
+reload: down ## Restart the frontend
 	@setsid $(MAKE) run > nohup.out 2>&1 & echo $$! > $(PID_FILE)
 	@echo "Frontend reloaded (PID: $$(cat $(PID_FILE)))"
 	@$(MAKE) check.readiness

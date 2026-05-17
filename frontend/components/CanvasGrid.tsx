@@ -143,6 +143,16 @@ export default function CanvasGrid({ layouts, onChange, onRemove }: CanvasGridPr
   const [containerW, setContainerW] = useState(0);
   const [rowH, setRowH] = useState(130);
   const [gap, setGap]   = useState(14);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // ── Mobile detection ──────────────────────────────────────────────────────
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   // ── ResizeObserver ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -342,6 +352,31 @@ export default function CanvasGrid({ layouts, onChange, onRemove }: CanvasGridPr
   }
 
   const diet = useDietData();
+
+  // ── Mobile: simple stacked layout (no drag/resize) ────────────────────────
+  if (isMobile) {
+    return (
+      <div className="flex flex-col gap-4 pb-4">
+        {layouts.map((layout) => {
+          const meta = WIDGET_REGISTRY[layout.id];
+          if (!meta) return null;
+          return (
+            <div key={layout.id}>
+              <Widget
+                id={layout.id}
+                title={meta.title}
+                onRemove={onRemove}
+                onDragPointerDown={() => {}}
+                isMobile
+              >
+                <WidgetContent id={layout.id} diet={diet} />
+              </Widget>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div

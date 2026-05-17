@@ -99,21 +99,24 @@ export default function Dashboard() {
   return (
     <>
       <div
-        className="flex gap-1 p-1 rounded-[10px] w-fit mb-5"
-        style={{ background: "var(--bg3)" }}
+        className="flex gap-1 p-1 w-fit mb-5"
+        style={{ background: "var(--bg3)", borderRadius: "var(--radius-xl)" }}
       >
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => !tab.disabled && setActiveTab(tab.id)}
             className={cn(
-              "px-4 py-1.5 rounded-[7px] text-[12px] font-medium transition-all border-none cursor-pointer",
+              "px-5 py-2 text-[13px] font-semibold transition-all border-none cursor-pointer",
               activeTab === tab.id
-                ? "bg-[var(--bg)] text-[var(--text)]"
+                ? "bg-[var(--bg)] text-[var(--text)] shadow-sm"
                 : "bg-transparent text-[var(--text3)] hover:text-[var(--text2)]"
             )}
             disabled={tab.disabled}
-            style={tab.disabled ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
+            style={{
+              borderRadius: "var(--radius-lg)",
+              ...(tab.disabled ? { opacity: 0.35, cursor: "not-allowed" } : {}),
+            }}
           >
             {tab.label}
           </button>

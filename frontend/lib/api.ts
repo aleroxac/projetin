@@ -64,8 +64,10 @@ export interface ApiUser {
 
 export interface MealLog {
   id: string;
+  userID: string;
   mealTitle: string;
   mealDescription: string;
+  mealItems: MealItem[];
   calories: number;
   protein: number;
   carbs: number;
@@ -73,8 +75,20 @@ export interface MealLog {
   loggedAt?: string;
 }
 
+export interface MealLogHistoryEntry {
+  id: string;
+  loggedAt: string;
+  mealTitle: string;
+  mealDescription: string;
+  protein: number;
+  carbs: number;
+  fat: number;
+  calories: number;
+}
+
 export interface MealLogDay {
   date: string;
+  meals: MealLogHistoryEntry[];
   totalCalories: number;
   totalProtein: number;
   totalCarbs: number;
@@ -94,8 +108,20 @@ function mapUser(raw: any): ApiUser {
 function mapMealLog(raw: any): MealLog {
   return {
     id: raw.id,
+    userID: raw.user_id ?? raw.userID ?? "",
     mealTitle: raw.meal_title ?? raw.mealTitle ?? "Meal",
     mealDescription: raw.meal_description ?? raw.mealDescription ?? "",
+    mealItems: Array.isArray(raw.meal_items)
+      ? raw.meal_items.map((i: any) => ({
+          item: i.item ?? "",
+          quantity: i.quantity ?? 0,
+          unit: i.unit ?? "",
+          protein: i.protein ?? 0,
+          carbs: i.carbs ?? 0,
+          fat: i.fat ?? 0,
+          calories: i.calories ?? 0,
+        }))
+      : [],
     calories: raw.calories ?? 0,
     protein: raw.protein ?? 0,
     carbs: raw.carbs ?? 0,
@@ -104,9 +130,23 @@ function mapMealLog(raw: any): MealLog {
   };
 }
 
+function mapMealLogHistoryEntry(raw: any): MealLogHistoryEntry {
+  return {
+    id: raw.id ?? "",
+    loggedAt: raw.logged_at ?? raw.loggedAt ?? "",
+    mealTitle: raw.meal_title ?? raw.mealTitle ?? "",
+    mealDescription: raw.meal_description ?? raw.mealDescription ?? "",
+    protein: raw.protein ?? 0,
+    carbs: raw.carbs ?? 0,
+    fat: raw.fat ?? 0,
+    calories: raw.calories ?? 0,
+  };
+}
+
 function mapMealLogDay(raw: any): MealLogDay {
   return {
     date: raw.date,
+    meals: Array.isArray(raw.meals) ? raw.meals.map(mapMealLogHistoryEntry) : [],
     totalCalories: raw.total_calories ?? 0,
     totalProtein: raw.total_protein ?? 0,
     totalCarbs: raw.total_carbs ?? 0,
@@ -206,6 +246,38 @@ export async function fetchMealLogHistory(userId: string): Promise<MealLogDay[]>
   if (!res.ok) throw new Error(`Erro ao listar meal log history (${res.status})`);
   const data = await res.json();
   return Array.isArray(data) ? data.map(mapMealLogDay) : [];
+}
+
+export async function createMealLog(data: {
+  user_id: string;
+  meal_title: string;
+  meal_description: string;
+}): Promise<MealLog> {
+  const res = await fetch("/api/meal-log", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Erro ao criar meal log (${res.status})`);
+  return mapMealLog(await res.json());
+}
+
+export async function updateMealLog(
+  id: string,
+  data: { meal_title?: string; meal_description?: string }
+): Promise<MealLog> {
+  const res = await fetch(`/api/meal-log/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Erro ao atualizar meal log (${res.status})`);
+  return mapMealLog(await res.json());
+}
+
+export async function deleteMealLog(id: string): Promise<void> {
+  const res = await fetch(`/api/meal-log/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`Erro ao excluir meal log (${res.status})`);
 }
 
 export async function fetchProjects(userId: string): Promise<Project[]> {

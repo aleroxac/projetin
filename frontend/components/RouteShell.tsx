@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import BottomNav from "@/components/BottomNav";
 import { AppShellProvider, useAppShell } from "@/components/AppShellContext";
 
 function ShellFrame({ children }: { children: ReactNode }) {
@@ -12,6 +13,9 @@ function ShellFrame({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { headerAction, setHeaderAction } = useAppShell();
   const [authChecked, setAuthChecked] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userName, setUserName] = useState("");
 
   const routeMeta = useMemo(() => {
     if (pathname === "/dashboard") {
@@ -46,6 +50,17 @@ function ShellFrame({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => {
+      setIsMobile(e.matches);
+      if (!e.matches) setSidebarOpen(false);
+    };
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
     if (!routeMeta) {
       setAuthChecked(true);
       return;
@@ -57,6 +72,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
       return;
     }
 
+    setUserName(localStorage.getItem("projetin:user:name") ?? "");
     setAuthChecked(true);
   }, [routeMeta, router]);
 
@@ -65,6 +81,11 @@ function ShellFrame({ children }: { children: ReactNode }) {
       setHeaderAction(null);
     }
   }, [pathname, setHeaderAction]);
+
+  // Close sidebar on navigation on mobile
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false);
+  }, [pathname, isMobile]);
 
   if (!routeMeta) {
     return <>{children}</>;
@@ -79,25 +100,53 @@ function ShellFrame({ children }: { children: ReactNode }) {
       className="h-screen overflow-hidden"
       style={{
         display: "grid",
-        gridTemplateColumns: "15.7rem 1fr",
-        gridTemplateRows: "3.86rem 1fr 2.86rem",
+        gridTemplateColumns: isMobile ? "1fr" : "15.7rem 1fr",
+        gridTemplateRows: isMobile ? "3.86rem 1fr" : "3.86rem 1fr 2.86rem",
       }}
     >
-      <Sidebar activeNav={routeMeta.activeNav} />
+      {/* Backdrop overlay when mobile sidebar is open */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <Sidebar
+        activeNav={routeMeta.activeNav}
+        isMobile={isMobile}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
       <Header
         onAddWidget={pathname === "/dashboard" ? headerAction ?? undefined : undefined}
         title={routeMeta.title}
         subtitle={routeMeta.subtitle}
+        isMobile={isMobile}
+        userName={userName}
       />
 
       <main
-        className="overflow-y-auto p-5 px-6"
-        style={{ gridRow: "2", gridColumn: "2", background: "var(--bg)" }}
+        className="overflow-y-auto"
+        style={{
+          gridRow: "2",
+          gridColumn: isMobile ? "1" : "2",
+          background: "var(--bg)",
+          padding: isMobile ? "1rem" : "1.25rem 1.5rem",
+          paddingBottom: isMobile ? "calc(3.75rem + env(safe-area-inset-bottom, 0px) + 1rem)" : undefined,
+        }}
       >
         {children}
       </main>
 
-      <Footer />
+      {isMobile && (
+        <BottomNav
+          activeNav={routeMeta.activeNav}
+          onProfileClick={() => setSidebarOpen(true)}
+        />
+      )}
+
+      {!isMobile && <Footer />}
     </div>
   );
 }

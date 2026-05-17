@@ -35,3 +35,21 @@ export async function GET(request: Request) {
     );
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const res = await fetch(`${API_BASE_URL}/meal-log`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      return NextResponse.json({ error: text }, { status: res.status });
+    }
+    return NextResponse.json(await res.json(), { status: 201 });
+  } catch (err) {
+    return NextResponse.json({ error: "Failed to reach backend", detail: String(err) }, { status: 502 });
+  }
+}

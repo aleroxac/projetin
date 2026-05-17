@@ -34,6 +34,9 @@ import {
 interface SidebarProps {
   activeNav: string;
   onNavChange?: (label: string) => void;
+  isMobile?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 interface SavedUser {
@@ -67,7 +70,7 @@ const NAV_SECTIONS = [
   },
 ];
 
-export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
+export default function Sidebar({ activeNav, onNavChange, isMobile, isOpen, onClose }: SidebarProps) {
   const [user, setUser] = useState<SavedUser>({ name: "Loading..." });
   const router = useRouter();
   const pathname = usePathname();
@@ -199,6 +202,7 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
   }
 
   function handleNavItemClick(label: string) {
+    onClose?.();
     if (label === "Dashboard") {
       router.push("/dashboard");
       return;
@@ -221,7 +225,18 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
   return (
     <aside
       className="flex flex-col overflow-hidden"
-      style={{
+      style={isMobile ? {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        height: "100vh",
+        width: "15.7rem",
+        zIndex: 50,
+        background: "var(--bg2)",
+        borderRight: "0.5px solid var(--border)",
+        transform: isOpen ? "translateX(0)" : "translateX(-100%)",
+        transition: "transform 0.25s ease",
+      } : {
         gridRow: "1 / 4",
         gridColumn: "1",
         background: "var(--bg2)",

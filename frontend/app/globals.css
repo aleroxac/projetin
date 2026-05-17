@@ -17,6 +17,18 @@
   --amber: #f59e0b;
   --purple: #8b5cf6;
   --red: #ef4444;
+
+  /* Macro palette */
+  --macro-protein:  #22c55e;
+  --macro-carbs:    #f59e0b;
+  --macro-fat:      #3b82f6;
+  --macro-calories: #8b5cf6;
+
+  /* Radius scale */
+  --radius-sm:  10px;
+  --radius-md:  16px;
+  --radius-lg:  22px;
+  --radius-xl:  28px;
 }
 
 * {
@@ -24,8 +36,14 @@
 }
 
 html {
-  /* 14px at 1440px baseline → scales up to 28px at 2880px, clamped */
-  font-size: clamp(13px, 0.972vw, 28px);
+  /* Desktop: scales 14 → 28px. Mobile: fixed at 15px for readability. */
+  font-size: 15px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: clamp(14px, 0.972vw, 28px);
+  }
 }
 
 html,
@@ -33,6 +51,7 @@ body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
+  -webkit-font-smoothing: antialiased;
 }
 
 ::-webkit-scrollbar {
