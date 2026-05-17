@@ -10,32 +10,36 @@ help: ## Show this menu
 
 
 ## ---------- MAIN
-.PHONY: run.back
-run.back: ## Run the backend
-	@echo "Starting Backend..."
-	@$(MAKE) -C backend docs
-	@$(MAKE) -C backend sqlc.gen
-	@$(MAKE) -C backend compose.up
-	@$(MAKE) -C backend migration.up
-	@$(MAKE) -j 2 -C backend run
+.PHONY: backend.up
+backend.up: ## Start the backend
+	@$(MAKE) -C backend up
 
-.PHONY: run.front
-run.front: ## Run the frontend
-	@echo "Starting Frontend..."
-	@$(MAKE) -j 2 -C frontend run
+.PHONY: backend.down
+backend.down: ## Stop the backend
+	@$(MAKE) -C backend down
 
-.PHONY: run
-run: ## Run both, backend and frontend
-	@$(MAKE) -j 2 run.back run.front
+.PHONY: backend.reload
+backend.reload: ## Restart the backend
+	@$(MAKE) -C backend reload
 
-.PHONY: app.up
-app.up: ## Run run back and front in BG and save PID's
-	@$(MAKE) run.back > backend.log 2>&1 & echo $$! > $(PID_BACK)
-	@$(MAKE) run.front > frontend.log 2>&1 & echo $$! > $(PID_FRONT)
-	@echo "Logs available: backend.log e frontend.log"
+.PHONY: frontend.up
+frontend.up: ## Start the frontend
+	@$(MAKE) -C frontend up
 
-.PHONY: app.down
-app.down: ## Kill front and back processes by PID and turn off the infra
-	@if [ -f $(PID_FRONT) ]; then kill $$(cat $(PID_FRONT)) && rm $(PID_FRONT); fi
-	@if [ -f $(PID_BACK) ]; then kill $$(cat $(PID_BACK)) && rm $(PID_BACK); fi
-	@$(MAKE) -C backend compose.down
+.PHONY: frontend.down
+frontend.down: ## Stop the frontend
+	@$(MAKE) -C frontend down
+
+.PHONY: frontend.reload
+frontend.reload: ## Restart the frontend
+	@$(MAKE) -C frontend reload
+
+.PHONY: up
+up: backend.up frontend.up ## Start backend and frontend
+
+.PHONY: down
+down: backend.down frontend.down ## Stop backend and frontend
+
+.PHONY: reload
+reload: backend.reload frontend.reload ## Restart backend and frontend
+

@@ -7,6 +7,8 @@ TODO.md
 *.log
 .DS_Store
 Thumbs.db
+**/nohup.out
+**/.pid
 
 # --- backend
 backend/tmp/

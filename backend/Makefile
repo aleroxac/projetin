@@ -1,5 +1,10 @@
 BASE_DIR := $(PWD)/backend
 # cd $(BASE_DIR)
+#
+# Process management: up/reload use `setsid` to start the app in a new session,
+# placing make, go run, and the compiled binary under the same process group (PGID = PID).
+# This allows `kill -- -PID` to terminate the entire tree at once.
+# Without it, killing only the make PID leaves the Go binary running as an orphan.
 
 conf ?= .env
 include $(conf)
@@ -12,6 +17,10 @@ $(foreach var, $(shell sed 's/=.*//' $(conf)), \
 )
 
 
+PID_FILE := .pid
+DB_WAIT_MAX_RETRIES := 10
+DB_WAIT_INTERVAL := 2
+
 ## ---------- UTILS
 default: help
 
@@ -21,7 +30,7 @@ help: ## Show this menu
 
 .PHONY: clean
 clean: ## Clean all temp files
-	@sudo rm -f coverage.* .run .build
+	@sudo rm -f coverage.* .run .build $(PID_FILE) nohup.out
 
 
 
@@ -169,3 +178,52 @@ compose.up: ## run docker-compose up
 .PHONY: compose.down
 compose.down: ## run docker-compose down
 	@docker compose down
+
+.PHONY: wait.db
+wait.db: ## Wait until PostgreSQL is ready to accept connections
+	@echo "Waiting for database..."
+	@retries=0; \
+	until docker exec postgresql pg_isready -U $(DB_USER) -d $(DB_NAME) -q; do \
+		retries=$$((retries + 1)); \
+		if [ $$retries -ge $(DB_WAIT_MAX_RETRIES) ]; then \
+			echo "  database not ready after $(DB_WAIT_MAX_RETRIES) retries, aborting."; \
+			exit 1; \
+		fi; \
+		echo "  not ready, retrying in $(DB_WAIT_INTERVAL)s... ($$retries/$(DB_WAIT_MAX_RETRIES))"; \
+		sleep $(DB_WAIT_INTERVAL); \
+	done
+	@echo "Database is ready."
+
+.PHONY: up
+up: ## Run the backend
+	@echo "Starting Backend..."
+	@$(MAKE) docs
+	@$(MAKE) sqlc.gen
+	@$(MAKE) compose.up
+	@$(MAKE) wait.db
+	@$(MAKE) migration.up
+	@setsid $(MAKE) run > nohup.out 2>&1 & echo $$! > $(PID_FILE)
+	@echo "Backend started (PID: $$(cat $(PID_FILE)))"
+
+.PHONY: down
+down: ## Stop the backend app and docker-compose services
+	@if [ -f $(PID_FILE) ]; then \
+		echo "Stopping process group $$(cat $(PID_FILE))..."; \
+		kill -- -$$(cat $(PID_FILE)) 2>/dev/null || true; \
+		rm -f $(PID_FILE); \
+	else \
+		echo "No PID file found, app may not be running"; \
+	fi
+	@$(MAKE) compose.down
+
+.PHONY: reload
+reload: ## Restart the backend app process
+	@if [ -f $(PID_FILE) ]; then \
+		echo "Stopping process group $$(cat $(PID_FILE))..."; \
+		kill -- -$$(cat $(PID_FILE)) 2>/dev/null || true; \
+		rm -f $(PID_FILE); \
+	fi
+	@$(MAKE) docs
+	@$(MAKE) sqlc.gen
+	@setsid $(MAKE) run > nohup.out 2>&1 & echo $$! > $(PID_FILE)
+	@echo "Backend reloaded (PID: $$(cat $(PID_FILE)))"
