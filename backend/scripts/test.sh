@@ -139,6 +139,7 @@ function create_goal() {
     "strategy_type": "recomposition"
   }' | jq
 }
+
 function get_goal() {
   project_id=$1
   curl -sL -X 'GET' \
@@ -279,10 +280,10 @@ function get_assessment_history() {
 
 ## ---------- MAIN
 ## ----- 0. health check
-# check_api_health
+check_api_health
 
 ## ----- 1. user
-# create_user
+create_user
 user_id=$(get_user)
 if [[ -z "${user_id}" || "${user_id}" == "null" ]]; then
   logger "ERROR" "main" "Failed to get user_id"
@@ -290,10 +291,10 @@ if [[ -z "${user_id}" || "${user_id}" == "null" ]]; then
 fi
 
 ## ----- 2. assessment
-# create_assessment "${user_id}"
+create_assessment "${user_id}"
 
 ## ----- 3. project
-# create_project "${user_id}"
+create_project "${user_id}"
 project_id=$(get_project "${user_id}" | jq -r ".[-1].id")
 if [[ -z "${project_id}" || "${project_id}" == "null" ]]; then
   logger "ERROR" "main" "Failed to get project_id"
@@ -301,7 +302,7 @@ if [[ -z "${project_id}" || "${project_id}" == "null" ]]; then
 fi
 
 ## ----- 4. goal
-# create_goal "${project_id}"
+create_goal "${project_id}"
 goal_id=$(get_goal "${project_id}" | jq -r ".[-1].id")
 if [[ -z "${goal_id}" || "${goal_id}" == "null" ]]; then
   logger "ERROR" "main" "Failed to get goal_id"
@@ -309,7 +310,7 @@ if [[ -z "${goal_id}" || "${goal_id}" == "null" ]]; then
 fi
 
 ## ----- 5. protocol
-# create_protocol "${goal_id}"
+create_protocol "${goal_id}"
 protocol_id=$(get_protocol "${goal_id}" | jq -r ".[-1].id")
 if [[ -z "${protocol_id}" || "${protocol_id}" == "null" ]]; then
   logger "ERROR" "main" "Failed to get protocol_id"
@@ -317,7 +318,7 @@ if [[ -z "${protocol_id}" || "${protocol_id}" == "null" ]]; then
 fi
 
 ## ----- 6. diet_plan
-# create_diet_plan "${protocol_id}"
+create_diet_plan "${protocol_id}"
 diet_plan_id=$(get_diet_plan "${protocol_id}")
 if [[ -z "${diet_plan_id}" || "${diet_plan_id}" == "null" ]]; then
   logger "ERROR" "main" "Failed to get diet_plan_id"
@@ -325,16 +326,16 @@ if [[ -z "${diet_plan_id}" || "${diet_plan_id}" == "null" ]]; then
 fi
 
 ## ----- 7. macro_estimation
-# create_macro_estimation "${user_id}"
+create_macro_estimation "${user_id}"
 
 ## ----- 8. meal_log
-# create_meal_log "${user_id}"
+create_meal_log "${user_id}"
 
 ## ----- 9. log_meal_history
-# get_meal_log_history "${user_id}"
+get_meal_log_history "${user_id}"
 
 ## ----- 10. diet_plan_adherence
 get_diet_plan_adherence "${user_id}" "${diet_plan_id}"
 
 ## ----- 11. shape_evolution
-# get_assessment_history "${user_id}"
+get_assessment_history "${user_id}"

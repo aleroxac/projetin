@@ -34,11 +34,18 @@ func (h *GoalHandler) Create(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := h.GoalService.Create(r.Context(), input); err != nil {
+	goal, err := h.GoalService.Create(r.Context(), input)
+	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]string{"message": "goal created successfully"})
+	writeJSON(w, http.StatusCreated, dto.GoalOutputDTO{
+		ID:           goal.ID.String(),
+		ProjectID:    goal.ProjectID.String(),
+		Name:         goal.Name,
+		StrategyType: goal.StrategyType,
+		IsActive:     goal.IsActive,
+	})
 }
 
 // GetByID godoc

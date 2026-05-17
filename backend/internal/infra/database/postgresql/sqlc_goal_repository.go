@@ -38,7 +38,7 @@ func (r *SQLCGoalRepository) Create(ctx context.Context, g *entity.Goal) error {
 	}
 	defer tx.Rollback()
 
-	_, err = r.queries.WithTx(tx).CreateGoal(ctx, sqlc.CreateGoalParams{
+	created, err := r.queries.WithTx(tx).CreateGoal(ctx, sqlc.CreateGoalParams{
 		ProjectID:    g.ProjectID,
 		Name:         g.Name,
 		StrategyType: g.StrategyType,
@@ -46,7 +46,13 @@ func (r *SQLCGoalRepository) Create(ctx context.Context, g *entity.Goal) error {
 	if err != nil {
 		return err
 	}
-	return tx.Commit()
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	g.ID = created.ID
+	return nil
 }
 
 func (r *SQLCGoalRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Goal, error) {

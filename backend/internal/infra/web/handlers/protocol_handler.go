@@ -34,11 +34,17 @@ func (h *ProtocolHandler) Create(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := h.ProtocolService.Create(r.Context(), input); err != nil {
+	protocol, err := h.ProtocolService.Create(r.Context(), input)
+	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]string{"message": "protocol created successfully"})
+	writeJSON(w, http.StatusCreated, dto.ProtocolOutputDTO{
+		ID:       protocol.ID.String(),
+		GoalID:   protocol.GoalID.String(),
+		Name:     protocol.Name,
+		IsActive: protocol.IsActive,
+	})
 }
 
 // GetByID godoc

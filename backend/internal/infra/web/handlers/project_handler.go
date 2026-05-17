@@ -35,11 +35,17 @@ func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := h.ProjectService.Create(r.Context(), input); err != nil {
+	project, err := h.ProjectService.Create(r.Context(), input)
+	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]string{"message": "project created successfully"})
+	writeJSON(w, http.StatusCreated, dto.ProjectOutputDTO{
+		ID:       project.ID.String(),
+		UserID:   project.UserID.String(),
+		Name:     project.Name,
+		IsActive: project.IsActive,
+	})
 }
 
 // GetByID godoc

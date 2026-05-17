@@ -1,4 +1,15 @@
+# --- global
+TODO.md
 **/.env
 **/.docs
 **/.tmp
 **/.bkp
+
+# --- frontend
+.next/
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+playwright/.auth/

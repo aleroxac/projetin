@@ -37,14 +37,20 @@ func (r *SQLCProjectRepository) Create(ctx context.Context, p *entity.Project) e
 	}
 	defer tx.Rollback()
 
-	_, err = r.queries.WithTx(tx).CreateProject(ctx, sqlc.CreateProjectParams{
+	created, err := r.queries.WithTx(tx).CreateProject(ctx, sqlc.CreateProjectParams{
 		UserID: p.UserID,
 		Name:   p.Name,
 	})
 	if err != nil {
 		return err
 	}
-	return tx.Commit()
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	p.ID = created.ID
+	return nil
 }
 
 func (r *SQLCProjectRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Project, error) {

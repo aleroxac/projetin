@@ -35,12 +35,19 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.UserService.Create(r.Context(), input); err != nil {
+	user, err := h.UserService.Create(r.Context(), input)
+	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, map[string]string{"message": "user created successfully"})
+	writeJSON(w, http.StatusCreated, dto.UserOutputDTO{
+		ID:            user.ID.String(),
+		Name:          user.Name,
+		Email:         user.Email,
+		BiologicalSex: user.BiologicalSex,
+		BirthDate:     dto.Date(user.BirthDate),
+	})
 }
 
 // GetByID godoc

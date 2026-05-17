@@ -24,12 +24,15 @@ func NewProtocolService(repo ProtocolRepository) *ProtocolService {
 	return &ProtocolService{Repo: repo}
 }
 
-func (s *ProtocolService) Create(ctx context.Context, input dto.CreateProtocolInputDTO) error {
+func (s *ProtocolService) Create(ctx context.Context, input dto.CreateProtocolInputDTO) (*entity.Protocol, error) {
 	protocol, err := entity.NewProtocol(input.GoalID, input.Name)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return s.Repo.Create(ctx, protocol)
+	if err := s.Repo.Create(ctx, protocol); err != nil {
+		return nil, err
+	}
+	return protocol, nil
 }
 
 func (s *ProtocolService) GetByID(ctx context.Context, id string) (*entity.Protocol, error) {

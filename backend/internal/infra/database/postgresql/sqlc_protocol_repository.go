@@ -37,14 +37,20 @@ func (r *SQLCProtocolRepository) Create(ctx context.Context, p *entity.Protocol)
 	}
 	defer tx.Rollback()
 
-	_, err = r.queries.WithTx(tx).CreateProtocol(ctx, sqlc.CreateProtocolParams{
+	created, err := r.queries.WithTx(tx).CreateProtocol(ctx, sqlc.CreateProtocolParams{
 		GoalID: p.GoalID,
 		Name:   p.Name,
 	})
 	if err != nil {
 		return err
 	}
-	return tx.Commit()
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	p.ID = created.ID
+	return nil
 }
 
 func (r *SQLCProtocolRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Protocol, error) {

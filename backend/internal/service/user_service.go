@@ -10,7 +10,7 @@ import (
 )
 
 type UserRepository interface {
-	Create(ctx context.Context, user *entity.User) error
+	Create(ctx context.Context, user *entity.User) error // sets user.ID after creation
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
 	List(ctx context.Context) ([]*entity.User, error)
 	Update(ctx context.Context, id uuid.UUID, user *entity.User) error
@@ -25,15 +25,19 @@ func NewUserService(repo UserRepository) *UserService {
 	return &UserService{UserRepo: repo}
 }
 
-func (uc *UserService) Create(ctx context.Context, input dto.CreateUserInputDTO) error {
+func (uc *UserService) Create(ctx context.Context, input dto.CreateUserInputDTO) (*entity.User, error) {
 	birthDate := time.Time(input.BirthDate)
 
 	user, err := entity.NewUser(input.Name, input.Email, input.BiologicalSex, birthDate)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return uc.UserRepo.Create(ctx, user)
+	if err := uc.UserRepo.Create(ctx, user); err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (uc *UserService) GetByID(ctx context.Context, id string) (*entity.User, error) {

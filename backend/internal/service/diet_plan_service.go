@@ -65,22 +65,22 @@ func NewDietPlanService(
 	}
 }
 
-func (s *DietPlanService) Create(ctx context.Context, input dto.CreateDietPlanInputDTO) error {
+func (s *DietPlanService) Create(ctx context.Context, input dto.CreateDietPlanInputDTO) (*entity.DietPlan, error) {
 	protocol, err := s.ProtocolRepo.GetByID(ctx, input.ProtocolID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	goal, err := s.GoalRepo.GetByID(ctx, protocol.GoalID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	project, err := s.ProjectRepo.GetByID(ctx, goal.ProjectID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	assessment, err := s.AssessmentRepo.GetLatestByUserID(ctx, project.UserID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	calorieIntensity := entity.DietIntensity(input.CalorieIntensity)
@@ -101,9 +101,12 @@ func (s *DietPlanService) Create(ctx context.Context, input dto.CreateDietPlanIn
 		targets.Water,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return s.Repo.Create(ctx, dietPlan)
+	if err := s.Repo.Create(ctx, dietPlan); err != nil {
+		return nil, err
+	}
+	return dietPlan, nil
 }
 
 func (s *DietPlanService) GetByID(ctx context.Context, id string) (*entity.DietPlan, error) {

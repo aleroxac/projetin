@@ -1,3 +1,6 @@
+BASE_DIR := $(PWD)/backend
+# cd $(BASE_DIR)
+
 conf ?= .env
 include $(conf)
 export $(shell sed 's/=.*//' $(conf))
@@ -92,12 +95,12 @@ migration.init: ## init migrations
 .PHONY: migration.up
 migration.up: ## run migrations up
 	@migrate -path=internal/infra/database/postgresql/migrations -database "postgres://$(DB_USER):$(DB_PASSWORD)@127.0.0.1:$(DB_PORT)/$(DB_NAME)?sslmode=disable" -verbose up
-	@docker exec -it postgresql psql -d projetin -c "\dt"
+	@docker exec -it postgresql psql -U $(DB_USER) -d $(DB_NAME) -c "\dt"
 
 .PHONY: migration.down
 migration.down: ## run migrations down
 	@migrate -path=internal/infra/database/postgresql/migrations -database "postgres://$(DB_USER):$(DB_PASSWORD)@127.0.0.1:$(DB_PORT)/$(DB_NAME)?sslmode=disable" -verbose down --all
-	@docker exec -it postgresql psql -d projetin -c "\dt"
+	@docker exec -it postgresql psql -U $(DB_USER) -d $(DB_NAME) -c "\dt"
 
 .PHONY: migration.clean
 migration.clean: migration.down migration.up ## run migration down and up to cleanup all data
@@ -161,7 +164,7 @@ runc: docs sqlc.gen ## run the app via docker
 
 .PHONY: compose.up
 compose.up: ## run docker-compose up
-	@docker compose up -d
+	@docker compose up -d --wait
 
 .PHONY: compose.down
 compose.down: ## run docker-compose down

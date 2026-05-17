@@ -34,17 +34,17 @@ As I'm a Toguro's fan, and I'm currently in a diet and workout program, I just u
 ## Purpose
 
 ### Problem
-Depois de já ter definido minhas metas de macros e calorias diárias, hoje eu uso o Gemini diariamente para postar minhas refeições, ver as macros e calorias e então fazer os ajustes necessários para que eu bata todas as metas. O problema dessa abordagem é que eu faço a mesma coisa todos os dias, manualmente, e diversas vezes preciso fazer multiplas interações a fim de conseguir sugestões de alterações de itens e/ou quantidades nas minhas refs, sugestões de refs, etc.
+Now that I've set my daily macro and calorie goals, I use Gemini every day to log my meals, check my macros and calories, and then make the necessary adjustments so I can hit all my goals. The problem with this approach is that I do the same thing every day, manually, and often have to go through multiple steps to get suggestions for changing items and/or quantities in my meals, meal suggestions, etc.
 
 ### Solution
-Como já faço isso há mais de 2 meses, notei alguns padrões. Acho que todas, ou pelo menos boa parte, dessas interações podem ser automatizadas e gerenciadoas através de um app com AI integrada.
+Since I've been doing this for over 2 months, I've noticed some patterns. I think all, or at least a good portion, of these interactions can be automated and managed through an app with integrated AI.
 
 ---
 
 ## Product
 
 ### Brief
-Um WebApp com features que juntas sejam capazes de entregar a mesma experiência que já tenho usando o Gemini, mas com uma interface mais amigável e 100% customizada para meu caso de uso.
+A web app with features that together can deliver the same experience I already have using Gemini, but with a more user-friendly interface and 100% customized for my use case.
 
 ### Modules
 1. **Profile**: Manages user identity, biological baseline data (such as age and biological sex for BMR calculations), and global application preferences like measurement units, language, and notification triggers.
@@ -100,6 +100,8 @@ mvp:
       - protein: 150g
       - carbohydrate: 165g
       - fat: 71g
+      - fibers: 25g
+      - sodium: 2000mg
   fitness:
     - macro_estimation
     - meal_log
@@ -242,34 +244,36 @@ project:
   protocol:
     diet_plan:
       diet_intensity:
-        calories: low, moderate, high
-        protein: low, moderate, high
-        carbohydrate: low, moderate, high
-        fat: low, moderate, high
+        calories: low, moderate, high, custom
+        protein: low, moderate, high, custom
+        carbohydrate: low, moderate, high, custom
+        fat: low, moderate, high, custom
+        fiber: low, moderate, high, custom
+        sodium: low, moderate, high, custom
       nutritional_targets:
         calories: int
-        salt: g
+        sodium: mg
         fibers: g
         water: l
         macronutrients: {
-            protein: g,
-            carbohydrate: g,
-            fat: g
+          protein: g,
+          carbohydrate: g,
+          fat: g
         }
         micronutrients: {
-            vitamin-b6: mg,
-            vitamin-d: mg,
-            vitamin-c: mg,
-            vitamin-b12: mg,
-            sodium: mg,
-            zinc: mg,
-            magnezium: mg,
-            iron: mg,
-            calcium: mg,
-            potassium: mg,
-            omega3: mg,
-            fosfato: mg,
-            iodo: mg
+          vitamin-b6: mg,
+          vitamin-d: mg,
+          vitamin-c: mg,
+          vitamin-b12: mg,
+          sodium: mg,
+          zinc: mg,
+          magnezium: mg,
+          iron: mg,
+          calcium: mg,
+          potassium: mg,
+          omega3: mg,
+          fosfato: mg,
+          iodo: mg
         }
         meal_structure:
           daily_meals: # List of objects (name, time, fixed_macros)

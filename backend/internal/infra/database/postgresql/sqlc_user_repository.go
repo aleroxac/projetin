@@ -40,7 +40,7 @@ func (r *SQLCUserRepository) Create(ctx context.Context, u *entity.User) error {
 
 	qtx := r.queries.WithTx(tx)
 
-	_, err = qtx.CreateUser(ctx, sqlc.CreateUserParams{
+	created, err := qtx.CreateUser(ctx, sqlc.CreateUserParams{
 		Name:          u.Name,
 		Email:         u.Email,
 		BiologicalSex: u.BiologicalSex,
@@ -50,7 +50,12 @@ func (r *SQLCUserRepository) Create(ctx context.Context, u *entity.User) error {
 		return err
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	u.ID = created.ID
+	return nil
 }
 
 func (r *SQLCUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {

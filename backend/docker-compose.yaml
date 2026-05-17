@@ -10,7 +10,7 @@ services:
     container_name: postgresql
     hostname: postgresql
     restart: always
-    image: postgres:16.13-alpine3.23
+    image: dhi.io/postgres:18-alpine3.22
     environment:
       POSTGRES_DB: projetin
       POSTGRES_USER: root
@@ -20,16 +20,16 @@ services:
     networks:
       - projetin
     healthcheck:
-      test: [ "CMD", "pg_isready" ]
-      interval: 10s
-      timeout: 5s
+      test: [ "CMD-SHELL", "pg_isready -U root -d projetin || exit 1" ]
+      interval: 1s
+      timeout: 2s
       retries: 5
 
   # migrations:
   #   hostname: migrations
   #   container_name: migrations
   #   restart: no
-  #   image: migrate/migrate:v4.17.1
+  #   image: migrate/migrate:v4.19.1
   #   command: -path=/migrations -database "postgres://root:root@postgresql:5432/projetin" -verbose up
   #   environment:
   #     POSTGRES_DB: projetin
@@ -47,7 +47,7 @@ services:
   #   container_name: pgadmin
   #   hostname: pgadmin
   #   restart: always
-  #   image: dpage/pgadmin4:2024-07-25-1
+  #   image: dpage/pgadmin4:9.14.0
   #   environment:
   #     PGADMIN_DEFAULT_EMAIL: root@domain.com
   #     PGADMIN_DEFAULT_PASSWORD: root
@@ -72,7 +72,7 @@ services:
   #   container_name: redis
   #   hostname: redis
   #   restart: always
-  #   image: 7.4.1-alpine3.20
+  #   image: dhi.io/redis:8
   #   ports:
   #     - 6379:6379
   #   networks:
@@ -87,7 +87,7 @@ services:
   #   container_name: insight
   #   hostname: insight
   #   restart: always
-  #   image: redis/redisinsight:2.60
+  #   image: redis/redisinsight:3.4.2
   #   ports:
   #     - 5540:5540
   #   networks:

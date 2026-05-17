@@ -24,12 +24,15 @@ func NewProjectService(repo ProjectRepository) *ProjectService {
 	return &ProjectService{Repo: repo}
 }
 
-func (s *ProjectService) Create(ctx context.Context, input dto.CreateProjectInputDTO) error {
+func (s *ProjectService) Create(ctx context.Context, input dto.CreateProjectInputDTO) (*entity.Project, error) {
 	project, err := entity.NewProject(input.UserID, input.Name)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return s.Repo.Create(ctx, project)
+	if err := s.Repo.Create(ctx, project); err != nil {
+		return nil, err
+	}
+	return project, nil
 }
 
 func (s *ProjectService) GetByID(ctx context.Context, id string) (*entity.Project, error) {

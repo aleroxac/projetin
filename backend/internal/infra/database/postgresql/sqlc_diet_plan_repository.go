@@ -44,7 +44,7 @@ func (r *SQLCDietPlanRepository) Create(ctx context.Context, d *entity.DietPlan)
 	}
 	defer tx.Rollback()
 
-	_, err = r.queries.WithTx(tx).CreateDietPlan(ctx, sqlc.CreateDietPlanParams{
+	created, err := r.queries.WithTx(tx).CreateDietPlan(ctx, sqlc.CreateDietPlanParams{
 		ProtocolID:       d.ProtocolID,
 		CalorieIntensity: string(d.CalorieIntensity),
 		ProteinIntensity: string(d.ProteinIntensity),
@@ -58,7 +58,13 @@ func (r *SQLCDietPlanRepository) Create(ctx context.Context, d *entity.DietPlan)
 	if err != nil {
 		return err
 	}
-	return tx.Commit()
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	d.ID = created.ID
+	return nil
 }
 
 func (r *SQLCDietPlanRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.DietPlan, error) {

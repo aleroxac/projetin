@@ -24,12 +24,15 @@ func NewGoalService(repo GoalRepository) *GoalService {
 	return &GoalService{Repo: repo}
 }
 
-func (s *GoalService) Create(ctx context.Context, input dto.CreateGoalInputDTO) error {
+func (s *GoalService) Create(ctx context.Context, input dto.CreateGoalInputDTO) (*entity.Goal, error) {
 	goal, err := entity.NewGoal(input.ProjectID, input.Name, input.StrategyType)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return s.Repo.Create(ctx, goal)
+	if err := s.Repo.Create(ctx, goal); err != nil {
+		return nil, err
+	}
+	return goal, nil
 }
 
 func (s *GoalService) GetByID(ctx context.Context, id string) (*entity.Goal, error) {

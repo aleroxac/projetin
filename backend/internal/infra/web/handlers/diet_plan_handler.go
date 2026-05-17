@@ -34,11 +34,24 @@ func (h *DietPlanHandler) Create(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := h.DietPlanService.Create(r.Context(), input); err != nil {
+	plan, err := h.DietPlanService.Create(r.Context(), input)
+	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]string{"message": "diet plan created successfully"})
+	writeJSON(w, http.StatusCreated, dto.DietPlanOutputDTO{
+		ID:               plan.ID.String(),
+		ProtocolID:       plan.ProtocolID.String(),
+		CalorieIntensity: string(plan.CalorieIntensity),
+		ProteinIntensity: string(plan.ProteinIntensity),
+		FatIntensity:    string(plan.FatIntensity),
+		Protein:          plan.Protein,
+		Carbs:            plan.Carbs,
+		Fat:              plan.Fat,
+		Calories:         plan.Calories,
+		Water:            plan.Water,
+		IsActive:         plan.IsActive,
+	})
 }
 
 // GetByID godoc
