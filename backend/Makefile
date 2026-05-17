@@ -34,6 +34,10 @@ help: ## Show this menu
 clean: ## Clean all temp files
 	@sudo rm -f coverage.* .run .build $(PID_FILE) nohup.out
 
+.PHONY: logs
+logs: ## Tail the background server output
+	@tail -f nohup.out
+
 
 
 ## ---------- FUNCTIONS

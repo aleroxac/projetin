@@ -18,6 +18,10 @@ help: ## Show this menu
 clean: ## Clean temp files
 	@rm -f $(PID_FILE) nohup.out
 
+.PHONY: logs
+logs: ## Tail the background server output
+	@tail -f nohup.out
+
 
 ## ---------- MAIN
 .PHONY: run

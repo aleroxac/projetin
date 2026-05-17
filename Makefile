@@ -34,6 +34,14 @@ frontend.down: ## Stop the frontend
 frontend.reload: ## Restart the frontend
 	@$(MAKE) -C frontend reload
 
+.PHONY: frontend.logs
+frontend.logs: ## Tail frontend server output
+	@$(MAKE) -C frontend logs
+
+.PHONY: backend.logs
+backend.logs: ## Tail backend server output
+	@$(MAKE) -C backend logs
+
 .PHONY: up
 up: backend.up frontend.up ## Start backend and frontend
 
